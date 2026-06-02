@@ -1,0 +1,125 @@
+---
+title: "Module 4 — Visualizing distributions and summaries"
+format: html
+editor: source
+execute:
+  warning: false
+  message: false
+---
+
+> *Mode flip.* If you were **agentic** in Exercise 1, you are **manual** now; if you were manual, you are agentic.
+
+```{r setup}
+library(tidyverse)
+library(here)
+library(ggbeeswarm)
+
+table_02 <- read_csv(here("data/instructional_dataset/02_visit_clinical_measurements_UKZN_workshop_2023.csv"))
+```
+
+## Part 1 — Read three plots (no code)
+
+```{r}
+#| echo: false
+#| fig-width: 6
+#| fig-height: 4
+ggplot(table_02, aes(ph)) +
+  geom_histogram(binwidth = 0.2, fill = "navyblue") +
+  facet_wrap(~ arm)
+```
+
+**Plot 1 (above). Answer in plain words:**
+
+1. What is the mark?
+2. What mark property comes from what column?
+3. How many rows of data made each mark?
+
+```{r}
+#| echo: false
+#| fig-width: 6
+#| fig-height: 4
+ggplot(table_02, aes(arm, ph)) +
+  geom_boxplot()
+```
+
+**Plot 2 (above). Answer the same three questions.**
+
+```{r}
+#| echo: false
+#| fig-width: 6
+#| fig-height: 4
+ggplot(table_02, aes(arm, ph)) +
+  geom_quasirandom()
+```
+
+**Plot 3 (above). Answer the same three questions.**
+
+**Sketch.** Draw on paper or describe in words a plot that would answer "does pH differ between arms?" using a **layered** approach — raw observations underneath a summary mark.
+
+*Your sketch / description:*
+
+## Part 2 — Build the plot
+
+```{r}
+# step 1: ggplot(table_02, aes(ph)) + geom_histogram(), then add + facet_wrap(~ arm)
+```
+
+```{r}
+# step 2: ggplot(table_02, aes(arm, ph)) + geom_boxplot()
+```
+
+```{r}
+# step 3: swap geom_boxplot() for geom_quasirandom()
+```
+
+```{r}
+# step 4: swap for geom_violin()
+```
+
+```{r}
+# step 5a: compute ph_summary <- table_02 |> group_by(arm) |>
+#                                summarise(mean_ph = mean(ph), sd_ph = sd(ph))
+ph_summary <- NULL  # replace NULL with the pipeline
+ph_summary
+```
+
+```{r}
+# step 5b: ggplot(ph_summary, aes(arm, mean_ph)) +
+#            geom_pointrange(aes(ymin = mean_ph - sd_ph, ymax = mean_ph + sd_ph))
+```
+
+```{r}
+# step 6: layered — geom_quasirandom(data = table_02, aes(arm, ph), alpha = 0.5)
+#                 + geom_pointrange(data = ph_summary, aes(arm, mean_ph,
+#                                                          ymin = mean_ph - sd_ph,
+#                                                          ymax = mean_ph + sd_ph),
+#                                   color = "red", size = 0.8)
+```
+
+```{r}
+# step 7: faceted from long_table (the pivot_longer result from Exercise 1)
+#         long_table |> ggplot(aes(arm, value)) + geom_boxplot() +
+#                       facet_wrap(~ measurement, scales = "free_y")
+# If you don't have long_table available, rebuild it:
+#   long_table <- table_02 |> pivot_longer(c(ph, nugent_score, crp_blood),
+#                                          names_to = "measurement",
+#                                          values_to = "value")
+```
+
+## Part 3 — Reach (optional)
+
+Build the polished final figure: the layered plot from step 6, faceted by `time_point` (in chronological order: `baseline`, `week_1`, `week_7`), with axis labels and a clean theme.
+
+```{r}
+# reach: the polished final figure
+```
+
+Optional add-on: density overlay on the histogram from step 1.
+
+```{r}
+# reach add-on:
+# ggplot(table_02, aes(ph)) +
+#   geom_histogram(aes(y = after_stat(density)), binwidth = 0.2, fill = "navyblue", alpha = 0.5) +
+#   geom_density(color = "navyblue") +
+#   facet_wrap(~ arm)
+```

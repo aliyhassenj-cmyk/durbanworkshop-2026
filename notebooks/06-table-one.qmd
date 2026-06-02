@@ -1,0 +1,84 @@
+---
+title: "Module 6 — Demographics and Table 1"
+format: html
+editor: source
+execute:
+  warning: false
+  message: false
+---
+
+> *Your mode for this exercise.* Group A: **agentic** — describe each step to Pi and let it write the code. Group B: **manual** — write each step yourself. A chat LLM may answer conceptual questions but should not edit this notebook or run commands. Exercise 2 flips the modes.
+
+```{r setup}
+library(tidyverse)
+library(here)
+library(gtsummary)
+
+table_01 <- read_csv(
+  here("data/instructional_dataset/01_participant_metadata_UKZN_workshop_2023.csv"),
+  col_types = cols(sex = col_character())
+)
+```
+
+## Part 1 — Predict (no code)
+
+```{r}
+table_01
+```
+
+For each non-pid column of `table_01` (`arm`, `smoker`, `age`, `education`, `sex`), predict in plain words below. Don't run any code yet.
+
+**1. `arm`**
+
+- How will `tbl_summary(by = arm)` summarise it? *Your answer:*
+- What test will `add_p()` pick? *Your answer:*
+
+**2. `smoker`**
+
+- *Your answer (summary, test):*
+
+**3. `age`**
+
+- *Your answer (summary, test):*
+
+**4. `education`**
+
+- *Your answer (summary, test):*
+
+**5. `sex`**
+
+- *Your answer (summary, test):*
+
+## Part 2 — Build
+
+Each step adds one piece on top of the previous table. Run after each step.
+
+```{r}
+# step 1: tbl_summary defaults
+table_01 |>
+  select(-pid, -sex) |>
+  tbl_summary(by = arm)
+```
+
+```{r}
+# step 2: add p-values
+# (modify the previous chunk by adding `|> add_p()`)
+```
+
+```{r}
+# step 3: override age to mean (SD) + t-test
+# statistic = list(age ~ "{mean} ({sd})")
+# test = list(age ~ "t.test")
+```
+
+```{r}
+# step 4: polish
+# add `|> add_overall() |> bold_labels() |> modify_header(label ~ "**Characteristic**")`
+```
+
+## Part 3 — Reach (optional)
+
+```{r}
+# reach: same table, but by = smoker instead of by = arm
+# what question is this table now answering?
+```

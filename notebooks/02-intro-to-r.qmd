@@ -1,0 +1,58 @@
+---
+title: "Module 2 — Intro to R and Quarto"
+format: html
+editor: source
+execute:
+  warning: false
+  message: false
+---
+
+This is your workspace for the Module 2 worksheet. The full instructions live
+on the lesson page — keep it open alongside this notebook. You will build up
+this notebook one part at a time: fill in the empty chunk under each heading,
+press **Run Cell** to see what happens, and write a sentence of your own
+between the chunks. Render with **Preview** whenever the worksheet tells you to.
+
+Always load the packages you need in a setup chunk at the top. Run this first,
+every time you open the notebook:
+
+```{r setup}
+library(tidyverse)
+library(here)
+```
+
+## Part 1 — Run a chunk, write a sentence, render
+
+```{r}
+# your code here
+```
+
+## Part 2 — Read the data and look at it
+
+```{r}
+# your code here
+```
+
+## Part 3 — Pull out columns and summarise them
+
+```{r}
+# your code here
+```
+
+## Part 4 — Build something with Pi
+
+```{r}
+# your code here
+```
+
+## Capstone — make it your own
+
+```{r}
+# your code here
+```
+
+## Before you go
+
+Pick one step today that confused you. Ask Pi to explain it, then push back:
+*"why did you use X instead of Y?"* Notice when Pi sounds confident versus when
+it is guessing.

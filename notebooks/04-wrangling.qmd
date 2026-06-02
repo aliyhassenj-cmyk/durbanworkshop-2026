@@ -1,0 +1,86 @@
+---
+title: "Module 4 — Reshaping and combining tables"
+format: html
+editor: source
+execute:
+  warning: false
+  message: false
+---
+
+> *Your mode for this exercise.* Group A: **agentic** — describe each step to Pi and let it write the code. Group B: **manual** — write each step yourself. A chat LLM may answer conceptual questions but should not edit this notebook or run commands. Exercise 2 flips the modes.
+
+```{r setup}
+library(tidyverse)
+library(here)
+
+table_01 <- read_csv(here("data/instructional_dataset/01_participant_metadata_UKZN_workshop_2023.csv"))
+table_02 <- read_csv(here("data/instructional_dataset/02_visit_clinical_measurements_UKZN_workshop_2023.csv"))
+```
+
+## Part 1 — Predict (no code)
+
+For each pipeline below, write in plain words *how many rows* the result has and *what one row represents*. Don't run any code yet.
+
+```{r}
+table_02
+```
+
+**1. After `table_02 |> group_by(pid) |> summarise(mean_ph = mean(ph))`:**
+
+*Your answer:*
+
+**2. After `table_02 |> group_by(arm, time_point) |> summarise(mean_ph = mean(ph))`:**
+
+*Your answer:*
+
+**3. After `per_person |> left_join(table_01, by = "pid")`, where `per_person` is the 44-row result from prediction 1:**
+
+*Your answer:*
+
+**4. After `arm_timepoint |> pivot_wider(names_from = time_point, values_from = mean_ph)`, where `arm_timepoint` is the 6-row result from prediction 2:**
+
+*Your answer:*
+
+## Part 2 — Build the pipeline
+
+```{r}
+# step 1: pipe table_02 into head() to see the starting shape
+```
+
+```{r}
+# step 2: group_by(pid) |> summarise(mean_ph = mean(ph), mean_nugent = mean(nugent_score))
+# assign it to per_person so step 3 can use it
+per_person <- NULL  # replace NULL with the pipeline
+per_person
+```
+
+```{r}
+# step 3: per_person |> left_join(table_01, by = "pid")
+```
+
+```{r}
+# step 4: separately, table_02 |> group_by(arm, time_point) |> summarise(mean_ph = mean(ph))
+# assign it to arm_timepoint
+arm_timepoint <- NULL  # replace NULL with the pipeline
+arm_timepoint
+```
+
+```{r}
+# step 5: arm_timepoint |> pivot_wider(names_from = time_point, values_from = mean_ph)
+```
+
+```{r}
+# step 6: separately, table_02 |> pivot_longer(c(ph, nugent_score, crp_blood),
+#                                              names_to = "measurement", values_to = "value")
+# assign it to long_table — Exercise 2 will use this
+long_table <- NULL  # replace NULL with the pipeline
+long_table
+```
+
+## Part 3 — Reach (optional)
+
+```{r}
+# reach: smokers <- table_01 |> filter(smoker == "smoker")
+# then: per_person |> semi_join(smokers, by = "pid")
+# then: group_by(arm) |> summarise(...) for per-arm pH means among smokers only
+```

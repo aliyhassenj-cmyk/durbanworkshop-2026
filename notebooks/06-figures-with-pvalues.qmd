@@ -1,0 +1,124 @@
+---
+title: "Module 6 — Figures with p-values"
+format: html
+editor: source
+execute:
+  warning: false
+  message: false
+---
+
+> *Mode flip.* If you were **agentic** in Exercise 1, you are **manual** now; if you were manual, you are agentic.
+
+```{r setup}
+library(tidyverse)
+library(here)
+library(gtsummary)
+library(ggpubr)
+
+table_00 <- read_csv(here("data/instructional_dataset/00_sample_ids_UKZN_workshop_2023.csv"))
+table_01 <- read_csv(
+  here("data/instructional_dataset/01_participant_metadata_UKZN_workshop_2023.csv"),
+  col_types = cols(sex = col_character())
+)
+table_02 <- read_csv(here("data/instructional_dataset/02_visit_clinical_measurements_UKZN_workshop_2023.csv"))
+table_03 <- read_csv(here("data/instructional_dataset/03_elisa_cytokines_UKZN_workshop_2023.csv"))
+```
+
+## Part 1 — Read three plots (no code)
+
+```{r}
+#| echo: false
+#| fig-width: 6
+#| fig-height: 4
+table_02 |>
+  filter(time_point == "week_7") |>
+  ggboxplot(x = "arm", y = "ph", fill = "arm") +
+  stat_compare_means(method = "wilcox.test", label.x = 1.3)
+```
+
+**Plot 1 (above). Answer in plain words:**
+
+1. What is the mark?
+2. What is the comparison being tested?
+3. What test is on it?
+4. How many rows of data made each mark?
+
+```{r}
+#| echo: false
+#| fig-width: 9
+#| fig-height: 6
+cytokines_keep <- c("IL-1a", "IL-6", "IL-8", "IL-1b", "MIG", "IP-10")
+cytokine_panel_df <- table_03 |>
+  filter(cytokine %in% cytokines_keep, limits == "within limits") |>
+  left_join(table_00, by = "sample_id") |>
+  filter(time_point == "week_7")
+
+ggplot(cytokine_panel_df, aes(arm, conc, fill = arm)) +
+  geom_boxplot() +
+  facet_wrap(~ cytokine, scales = "free_y") +
+  stat_compare_means(method = "wilcox.test", label.x = 1.3) +
+  theme(legend.position = "none")
+```
+
+**Plot 2 (above). Answer the same four questions for each panel.**
+
+```{r}
+#| echo: false
+#| fig-width: 8
+#| fig-height: 4
+pre_post_df <- table_02 |>
+  filter(time_point %in% c("baseline", "week_7")) |>
+  mutate(time_point = fct_relevel(time_point, "baseline", "week_7"))
+
+ggplot(pre_post_df, aes(time_point, ph)) +
+  geom_line(aes(group = pid), alpha = 0.4) +
+  geom_point(aes(color = arm), size = 2) +
+  facet_wrap(~ arm) +
+  stat_compare_means(
+    method = "wilcox.test",
+    paired = TRUE,
+    comparisons = list(c("baseline", "week_7"))
+  )
+```
+
+**Plot 3 (above). Answer the same four questions.**
+
+## Part 2 — Build
+
+```{r}
+# step 1: ggboxplot of ph by arm at week_7 + stat_compare_means(method = "wilcox.test")
+```
+
+```{r}
+# step 2: same plot in plain ggplot (geom_boxplot + stat_compare_means)
+# confirm both give the same p-value
+```
+
+```{r}
+# step 3: the cytokine panel
+# filter table_03 to 6 cytokines and within-limits, left_join table_00,
+# filter to week_7, then ggplot + geom_boxplot + facet_wrap + stat_compare_means
+```
+
+```{r}
+# step 4: paired pre-post
+# filter table_02 to baseline + week_7, mutate(time_point = fct_relevel(...)),
+# then ggplot + geom_line(aes(group = pid)) + geom_point + facet_wrap(~ arm) +
+#   stat_compare_means(method = "wilcox.test", paired = TRUE,
+#                      comparisons = list(c("baseline", "week_7")))
+```
+
+```{r}
+# step 5: adjusted analysis
+# outcome_table <- table_02 |> filter(time_point == "week_7") |>
+#                  left_join(table_01, by = c("pid", "arm"))
+# lm(ph ~ arm + age + smoker, data = outcome_table) |> tbl_regression()
+```
+
+## Part 3 — Reach (optional)
+
+Pick *one* analysis above and polish it for publication, or repeat the full arc on `nugent_score` or `crp_blood`.
+
+```{r}
+# reach: polished version or alternative outcome
+```

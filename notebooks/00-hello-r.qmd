@@ -1,0 +1,27 @@
+---
+title: "Hello, R!"
+format: html
+---
+
+Welcome! This is your very first notebook. If you can see a chart appear when
+you run the code below, your environment is working and you are ready to go.
+You do not need to understand every line yet — that is what the workshop is
+for. For now, just press play and watch what happens.
+
+```{r}
+library(tidyverse)
+library(palmerpenguins)
+
+ggplot(penguins, aes(x = flipper_length_mm, y = body_mass_g, color = species)) +
+  geom_point() +
+  labs(
+    title = "Penguin flipper length vs. body mass",
+    x = "Flipper length (mm)",
+    y = "Body mass (g)",
+    color = "Species"
+  )
+```
+
+Curious to make this your own? Open the terminal and ask Pi to help —
+for example, "Can you change the plot to show bill length instead of flipper
+length?" Experimenting is the best way to learn.

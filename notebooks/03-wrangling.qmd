@@ -1,0 +1,85 @@
+---
+title: "Module 3 — Data wrangling"
+format: html
+editor: source
+execute:
+  warning: false
+  message: false
+---
+
+> *Your mode for this exercise.* Group A: **agentic** — describe each step to Pi and let it write the code. Group B: **manual** — write each step yourself. A chat LLM may answer conceptual questions but should not edit this notebook or run commands. Exercise 2 flips the modes.
+
+```{r setup}
+library(tidyverse)
+library(here)
+
+table_02 <- read_csv(here("data/instructional_dataset/02_visit_clinical_measurements_UKZN_workshop_2023.csv"))
+```
+
+## Part 1 — Predict (no code)
+
+Take a look at `table_02` (run the cell above first). Answer in plain words below — no code yet.
+
+```{r}
+table_02
+```
+
+**1. How many rows? What does one row represent?**
+
+*Your answer:*
+
+**2. After `table_02 |> filter(time_point == "baseline")`, how many rows? What does each row represent now?**
+
+*Your answer:*
+
+**3. After `table_02 |> count(arm)`, how many rows? What does each row represent now?**
+
+*Your answer:*
+
+## Part 2 — Build the pipeline
+
+Each step adds one verb on top of the previous pipeline. Run after each step.
+
+```{r}
+# step 1: pipe table_02 into head()
+```
+
+```{r}
+# step 2: filter to the baseline time point
+```
+
+```{r}
+# step 3: add select() for pid, arm, ph, nugent_score, crp_blood
+```
+
+```{r}
+# step 4: add mutate() for high_ph = if_else(ph >= 4.5, "yes", "no")
+```
+
+```{r}
+# step 5: add arrange(desc(ph))
+```
+
+```{r}
+# step 6: assign the final pipeline to early_visit, then print it
+early_visit <- NULL  # replace NULL with the pipeline
+early_visit
+```
+
+```{r}
+# step 7: separately, table_02 |> count(arm)
+```
+
+## Part 3 — Reach (optional)
+
+Add a `nugent_category` column with `case_when()`:
+
+- 0–3 → "normal"
+- 4–6 → "intermediate"
+- 7–10 → "BV"
+
+Then run `count(arm, nugent_category)`.
+
+```{r}
+# reach: mutate(nugent_category = case_when(...)) then count(arm, nugent_category)
+```

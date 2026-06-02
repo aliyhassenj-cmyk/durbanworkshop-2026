@@ -1,0 +1,97 @@
+---
+title: "Module 3 — Data visualization"
+format: html
+editor: source
+execute:
+  warning: false
+  message: false
+---
+
+> *Mode flip.* If you were **agentic** in Exercise 1, you are **manual** now; if you were manual, you are agentic.
+
+```{r setup}
+library(tidyverse)
+library(here)
+
+table_02 <- read_csv(here("data/instructional_dataset/02_visit_clinical_measurements_UKZN_workshop_2023.csv"))
+```
+
+## Part 1 — Read two plots (no code)
+
+```{r}
+#| echo: false
+#| fig-width: 6
+#| fig-height: 4
+ggplot(table_02, aes(x = ph, y = nugent_score, color = arm)) +
+  geom_jitter()
+```
+
+**Plot 1 (above). Answer in plain words:**
+
+1. What is the mark?
+2. What mark property comes from what column?
+3. How many rows of data made each mark?
+
+```{r}
+#| echo: false
+#| fig-width: 6
+#| fig-height: 4
+ggplot(table_02, aes(x = arm, y = ph, fill = arm)) +
+  geom_boxplot()
+```
+
+**Plot 2 (above). Answer the same three questions.**
+
+**Sketch.** Draw on paper or describe in words a plot that answers "does pH differ between treatment arms?" Name the mark, the mappings, and how many rows make each mark.
+
+*Your sketch / description:*
+
+## Part 2 — Build the plot
+
+Each step adds one piece on top of the previous plot. Run after each.
+
+```{r}
+# step 1: ggplot(table_02, aes(x = ph, y = nugent_score)) + geom_point()
+```
+
+```{r}
+# step 2: swap geom_point() for geom_jitter()
+```
+
+```{r}
+# step 3: add aes(color = arm)
+```
+
+```{r}
+# step 4: switch to a boxplot of ph by arm: aes(x = arm, y = ph) + geom_boxplot()
+```
+
+```{r}
+# step 5a: aes(fill = arm) — mapping
+```
+
+```{r}
+# step 5b: fill = "navyblue" outside aes() — parameter
+```
+
+```{r}
+# step 6: add labs(x = "Treatment arm", y = "Vaginal pH", fill = "Arm")
+```
+
+```{r}
+# step 7: add facet_wrap(~ time_point)
+```
+
+## Part 3 — Reach (optional)
+
+Produce a polished version of the final boxplot:
+
+- faceted by `time_point`
+- colored by `arm`
+- axes and legend labeled
+- panels in chronological order (baseline, week_1, week_7)
+- a legible theme
+
+```{r}
+# reach: the polished final figure
+```

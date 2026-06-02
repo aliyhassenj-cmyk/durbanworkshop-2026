@@ -1,0 +1,27 @@
+{
+  "name": "Data Science for Biology — Workshop 2026",
+  "build": { "dockerfile": "Dockerfile" },
+  "features": {
+    // Quarto CLI for rendering .qmd notebooks
+    "ghcr.io/rocker-org/devcontainer-features/quarto-cli:1": {},
+    // Node.js — required by the Claude Code CLI and the Pi coding agent
+    "ghcr.io/devcontainers/features/node:1": {}
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "REditorSupport.r",
+        "quarto.quarto",
+        "anthropic.claude-code"
+      ]
+    }
+  },
+  // The participant's OpenRouter API key arrives as the Codespaces secret
+  // OPENROUTER_API_KEY. Claude Code reads it as ANTHROPIC_AUTH_TOKEN;
+  // Pi reads OPENROUTER_API_KEY directly from the environment.
+  "remoteEnv": {
+    "ANTHROPIC_AUTH_TOKEN": "${containerEnv:OPENROUTER_API_KEY}",
+    "OPENROUTER_API_KEY": "${containerEnv:OPENROUTER_API_KEY}"
+  },
+  "postCreateCommand": "bash .devcontainer/setup.sh"
+}

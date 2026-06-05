@@ -1,0 +1,233 @@
+---
+title: "Analytic Approaches in Genomic Epidemiological Studies of Metadata"
+subtitle: "How metadata enriches genomic epidemiology — a general framework"
+format: html
+editor: source
+execute:
+  warning: false
+  message: false
+---
+
+```{r setup}
+library(tidyverse)
+library(patchwork)
+```
+
+## What is metadata in genomic epidemiology?
+
+**Metadata** is the "data about the data" — the contextual information that
+turns a collection of genomes into an epidemiological story. Without
+metadata, a phylogenetic tree just shows how sequences are related. With
+metadata, you can ask:
+
+- *Where did this transmission happen?*
+- *Who infected whom?*
+- *What patient characteristics predict spread?*
+- *Is the outbreak growing or shrinking?*
+
+This diagram maps the major types of metadata, the analytic approaches that
+use them, and the insights they produce.
+
+```{r schematic, fig.width=12, fig.height=9, fig.align="center"}
+
+# ---- Colours ----
+genome_col  <- "#E3F2FD"    # genomic data (blues)
+meta_col    <- "#E8F5E9"    # metadata types (greens)
+approach_col <- "#FFF3E0"   # analytic approaches (oranges)
+output_col   <- "#F3E5F5"   # outputs (purples)
+insight_col  <- "#FFCDD2"   # public health insights (red)
+
+# ---- Steps ----
+steps <- tribble(
+  ~id,       ~x,  ~y,  ~w,   ~h,   ~label,                                 ~col,
+  # --- Data sources (top row) ---
+  "genome",    1,   7,  1.7,  0.6,  "Genomic data\n(WGS, amplicon,\ntargeted seq)",  genome_col,
+  "demo",      4.5, 7,  1.7,  0.5,  "Demographics\n(age, sex, location)",         meta_col,
+  "clin",      4.5, 6,  1.7,  0.5,  "Clinical metadata\n(symptoms, severity,\ncomorbidities, outcomes)", meta_col,
+  "temporal",  4.5, 5,  1.7,  0.5,  "Temporal metadata\n(onset, sampling,\nreporting dates)", meta_col,
+  "spatial",   4.5, 4,  1.7,  0.5,  "Spatial metadata\n(GPS, admin region,\npostal code)", meta_col,
+  "behav",     4.5, 3,  1.7,  0.5,  "Exposure metadata\n(travel, contacts,\noccupation, diet)", meta_col,
+
+  # --- Genomic processing (left column) ---
+  "qc",        1,   5.5, 1.7, 0.55, "Bioinformatics\n(QC, alignment,\nvariant calling)",        genome_col,
+  "tree",      1,   4,   1.7, 0.55, "Phylogenetic tree\n(ML, NJ, Bayesian,\nSNP distance)",       genome_col,
+  "clusters",  1,   2.7, 1.7, 0.55, "Cluster definition\n(SNP threshold,\nlineage assignment)", genome_col,
+
+  # --- Analytic approaches (centre) ---
+  "phylo_map",  6,   6.5, 1.6, 0.55, "Phylogenetic\ntrait mapping\n(tree + metadata)",         approach_col,
+  "bayes",      6,   5.3, 1.6, 0.55, "Bayesian\nphylodynamics\n(BEAST, birth-death)",          approach_col,
+  "trans_net",  8.2, 6.5, 1.6, 0.55, "Transmission\nnetwork inference\n(SNP + epi links)",      approach_col,
+  "risk_glm",   8.2, 5.3, 1.6, 0.55, "Risk factor analysis\n(logistic regression,\nmixed models)", approach_col,
+  "spatial_epi",6,   4.0, 1.6, 0.55, "Spatial epidemiology\n(kriging, spatial\nscan statistic)",  approach_col,
+  "ml",         8.2, 4.0, 1.6, 0.55, "Machine learning\n(RF, XGBoost for\noutbreak prediction)", approach_col,
+
+  # --- Outputs (bottom) ---
+  "desc",       3,   1.2, 1.5, 0.5,  "Descriptive\nsummaries\n(Table 1 by cluster)",      output_col,
+  "r0",         5.2, 1.2, 1.5, 0.5,  "Transmission\nparameters\n(R₀, Rₜ, growth rate)",    output_col,
+  "map",        7.5, 1.2, 1.5, 0.5,  "Spatial &\ntemporal\nmaps",                         output_col,
+  "network",    9.5, 1.2, 1.5, 0.5,  "Transmission\nnetworks &\nclusters",                 output_col,
+
+  # --- Insights (very bottom) ---
+  "insight",    6,  -0.5, 2.2, 0.6,  "PUBLIC HEALTH INSIGHTS\nWho, where, when, how?",      insight_col
+)
+
+# ---- Arrows ----
+arrows <- tribble(
+  ~from, ~to,
+
+  # Genomic pipeline
+  "genome",   "qc",
+  "qc",       "tree",
+  "tree",     "clusters",
+
+  # Metadata → approaches
+  "demo",     "phylo_map",
+  "clin",     "phylo_map",
+  "temporal", "bayes",
+  "spatial",  "spatial_epi",
+  "behav",    "risk_glm",
+  "temporal", "trans_net",
+  "clin",     "risk_glm",
+  "spatial",  "trans_net",
+  "behav",    "ml",
+
+  # Genomic → approaches
+  "clusters", "phylo_map",
+  "clusters", "trans_net",
+  "tree",     "bayes",
+  "clusters", "risk_glm",
+  "tree",     "phylo_map",
+  "clusters", "spatial_epi",
+  "tree",     "ml",
+
+  # Approaches → outputs
+  "phylo_map",   "desc",
+  "bayes",       "r0",
+  "trans_net",   "network",
+  "risk_glm",    "desc",
+  "spatial_epi", "map",
+  "ml",          "map",
+
+  # Outputs → insight
+  "desc",    "insight",
+  "r0",      "insight",
+  "map",     "insight",
+  "network", "insight"
+)
+
+# Join arrow endpoints
+arrows <- arrows |>
+  left_join(steps, by = c("from" = "id")) |>
+  left_join(steps, by = c("to" = "id"), suffix = c("_from", "_to"))
+
+# ---- Section headers ----
+headers <- tribble(
+  ~x,   ~y,  ~label, ~col,
+  1,    8.2, "DATA",        "#37474F",
+  4.5,  8.2, "METADATA TYPES", "#37474F",
+  7.1,  8.2, "ANALYTIC APPROACHES", "#37474F",
+  6,    2.0, "OUTPUTS", "#37474F",
+  6,   -1.3, "INSIGHTS", "#37474F"
+)
+
+# ---- Draw ----
+ggplot() +
+  # Header backgrounds
+  annotate("rect", xmin = 0,    xmax = 2,    ymin = 7.95, ymax = 8.45, fill = genome_col, colour = "#1565C0", linewidth = 0.4, alpha = 0.5) +
+  annotate("rect", xmin = 3.5,  xmax = 5.8,  ymin = 7.95, ymax = 8.45, fill = meta_col, colour = "#2E7D32", linewidth = 0.4, alpha = 0.5) +
+  annotate("rect", xmin = 5.9,  xmax = 9.8,  ymin = 7.95, ymax = 8.45, fill = approach_col, colour = "#E65100", linewidth = 0.4, alpha = 0.5) +
+  annotate("rect", xmin = 2.5,  xmax = 10.0, ymin = 1.75, ymax = 2.15, fill = output_col, colour = "#6A1B9A", linewidth = 0.4, alpha = 0.5) +
+  annotate("rect", xmin = 4.8,  xmax = 7.2,  ymin = -0.9, ymax = -0.3, fill = insight_col, colour = "#C62828", linewidth = 0.4, alpha = 0.5) +
+
+  geom_text(data = headers, aes(x, y, label = label), size = 3.6, fontface = "bold",
+            colour = "white") +
+
+  # ---- Boxes ----
+  geom_rect(data = steps,
+    aes(xmin = x - w/2, xmax = x + w/2, ymin = y - h/2, ymax = y + h/2),
+    fill = steps$col, colour = "#37474F", linewidth = 0.9, alpha = 0.9) +
+
+  # ---- Labels ----
+  geom_text(data = steps, aes(x, y, label = label),
+    size = 2.8, lineheight = 0.82, fontface = "bold", colour = "#263238") +
+
+  # ---- Arrows ----
+  geom_segment(data = arrows,
+    aes(x = x_from, y = y_from - h_from/2,
+        xend = x_to,   yend = y_to + h_to/2),
+    arrow = arrow(length = unit(0.08, "inches"), type = "closed"),
+    colour = "#546E7A", linewidth = 0.6, alpha = 0.7) +
+
+  # ---- Tidy ----
+  xlim(0, 10.5) + ylim(-1.5, 8.7) +
+  coord_fixed(ratio = 0.55) +
+  theme_void() +
+  labs(title = "Analytic Approaches in Genomic Epidemiological Studies of Metadata",
+       subtitle = "How metadata types connect to analytic methods and public health insights") +
+  theme(
+    plot.title    = element_text(size = 16, face = "bold", hjust = 0.5, margin = margin(b = 4)),
+    plot.subtitle = element_text(size = 10, colour = "grey40", hjust = 0.5, margin = margin(b = 8))
+  )
+```
+
+## Detailed guide to each section
+
+### 📦 Metadata types (what you collect)
+
+| Metadata type | Examples | Why it matters |
+|---------------|----------|----------------|
+| **Demographics** | Age, sex, occupation, ethnicity | Describes *who* is affected; helps adjust for confounding |
+| **Clinical** | Symptoms, severity score, comorbidities, hospitalisation, outcome | Links genotype to *disease phenotype* |
+| **Temporal** | Date of symptom onset, date of sampling, date of reporting | Enables *time-scaled phylogenies* and Rₜ estimation |
+| **Spatial** | GPS coordinate, administrative region, health facility | Reveals *geographic spread* and clustering |
+| **Exposure** | Travel history, contact tracing, occupation, diet, animal contact | Identifies *risk factors* and transmission routes |
+
+### 🔬 Analytic approaches (what you do with it)
+
+| Approach | What it does | Metadata it uses | Key tools |
+|----------|-------------|------------------|-----------|
+| **Phylogenetic trait mapping** | Maps discrete or continuous traits (location, phenotype) onto the tree to infer ancestral states and associations | Demographics, clinical, spatial | `phytools`, `ggtree`, `ape` |
+| **Bayesian phylodynamics** | Co-estimates tree, time scale, and population dynamics from sequence + date data | Temporal (dates) | **BEAST2**, `bdsky`, `phydynR` |
+| **Transmission network inference** | Infers who-infected-whom using SNP distances + epi links (time, place) | Temporal, spatial, exposure | `outbreaker2`, `TransPhylo`, `SeqTrack` |
+| **Risk factor analysis** | Tests association between metadata variables and cluster membership or outcome | Clinical, demographics, exposure | `glm()`, `lme4`, `gtsummary` |
+| **Spatial epidemiology** | Detects spatial clusters, maps diffusion, tests for spatial association | Spatial (coordinates, regions) | `spdep`, `DCluster`, `kriging` |
+| **Machine learning** | Predicts outbreak risk, classifies lineages, identifies important features from mixed data | All metadata types | `ranger`, `xgboost`, `tidymodels` |
+
+### 📊 Outputs and insights
+
+| Output | What it tells you |
+|--------|-------------------|
+| **Descriptive summaries** | Table 1 stratified by cluster or lineage — who is in each transmission group? |
+| **Transmission parameters** | Is the outbreak growing? (R₀, Rₜ, growth rate, doubling time) |
+| **Spatial & temporal maps** | Where and when is transmission happening? Are cases clustering in space-time? |
+| **Transmission networks** | Who infected whom? How many unsampled cases exist? |
+| **Public health insights** | Who should be targeted? Where should interventions go? Is one group at higher risk? |
+
+## Key principle: metadata adds the "where, when, and why" to the "what"
+
+A phylogenetic tree alone tells you **which strains are related**. Adding
+metadata turns it into an epidemiological investigation:
+
+> **Genomes + dates** → when did the outbreak start? How fast is it growing?
+>
+> **Genomes + locations** → where did it come from? Where is it spreading?
+>
+> **Genomes + exposures** → what behaviours or contacts drive transmission?
+>
+> **Genomes + clinical data** → does this strain cause more severe disease?
+
+## R packages for integrated genomic epidemiology
+
+| Package | Purpose |
+|---------|---------|
+| `ape` / `phangorn` | Tree building and manipulation |
+| `ggtree` | Tree visualisation with metadata |
+| `phytools` | Trait mapping and ancestral state reconstruction |
+| `outbreaker2` | Transmission network inference |
+| `TransPhylo` | Phylodynamic transmission reconstruction |
+| `phydynR` | Phylodynamic models in R |
+| `spdep` / `DCluster` | Spatial epidemiological analysis |
+| `gtsummary` | Table 1 by cluster or group |
+| `ranger` / `tidymodels` | Machine learning on mixed data |
+| `lubridate` | Date-time handling |
+| `sf` / `ggplot2` | Spatial data and mapping |

@@ -1,0 +1,2181 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.9.38">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>Group B — Menstrual Cycle Analysis</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="menstrual-analysis_files/libs/clipboard/clipboard.min.js"></script>
+<script src="menstrual-analysis_files/libs/quarto-html/quarto.js" type="module"></script>
+<script src="menstrual-analysis_files/libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="menstrual-analysis_files/libs/quarto-html/popper.min.js"></script>
+<script src="menstrual-analysis_files/libs/quarto-html/tippy.umd.min.js"></script>
+<script src="menstrual-analysis_files/libs/quarto-html/anchor.min.js"></script>
+<link href="menstrual-analysis_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="menstrual-analysis_files/libs/quarto-html/quarto-syntax-highlighting-15634bcf2e68342d4ad2dfa704d543f6.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="menstrual-analysis_files/libs/bootstrap/bootstrap.min.js"></script>
+<link href="menstrual-analysis_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="menstrual-analysis_files/libs/bootstrap/bootstrap-de9ea4695b5809f5b49b6072e50bb385.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+
+
+</head>
+
+<body class="quarto-light">
+
+<div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
+<div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+<div class="quarto-alternate-formats"><h2>Other Formats</h2><ul><li><a href="../../menstrual-analysis.pdf"><i class="bi bi-file-pdf"></i>PDF</a></li></ul></div></div>
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Group B — Menstrual Cycle Analysis</h1>
+<p class="subtitle lead">Cytokines, Immune Cells, and Birth Control</p>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<p>This document explores the <strong>Group B (menstrual cycle)</strong> dataset. We’ll:</p>
+<ol type="1">
+<li>Load and join the data</li>
+<li>Make summary tables with p-values</li>
+<li>Visualise cytokine and immune cell differences by birth control and time point</li>
+<li>Run regression models</li>
+</ol>
+<hr>
+<section id="load-and-join-data" class="level1">
+<h1>1. Load and Join Data</h1>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># --- Sample IDs ---</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>sample_ids <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="fu">file.path</span>(data_dir, <span class="st">"group_b_menstruation"</span>,</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>                                  <span class="st">"00_sample_ids_period.csv"</span>),</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>                       <span class="at">show_col_types =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="co"># --- Participant metadata ---</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>metadata <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="fu">file.path</span>(data_dir, <span class="st">"group_b_menstruation"</span>,</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>                                <span class="st">"01_participant_metadata_period.csv"</span>),</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>                     <span class="at">show_col_types =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="co"># --- Luminex cytokines (long format) ---</span></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>luminex <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="fu">file.path</span>(data_dir, <span class="st">"group_b_menstruation"</span>,</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>                               <span class="st">"02_luminex_period.csv"</span>),</span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>                    <span class="at">show_col_types =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a><span class="co"># --- Flow cytometry ---</span></span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>flow <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="fu">file.path</span>(data_dir, <span class="st">"group_b_menstruation"</span>,</span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>                            <span class="st">"03_flow_cytometry_period.csv"</span>),</span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>                 <span class="at">show_col_types =</span> <span class="cn">FALSE</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<section id="join-everything-together" class="level2">
+<h2 class="anchored" data-anchor-id="join-everything-together">Join everything together</h2>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Join sample IDs with metadata (keep only .x versions, rename)</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>samples <span class="ot">&lt;-</span> sample_ids <span class="sc">%&gt;%</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(metadata, <span class="at">by =</span> <span class="st">"pid"</span>, <span class="at">relationship =</span> <span class="st">"many-to-one"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rename</span>(<span class="at">arm =</span> arm.x) <span class="sc">%&gt;%</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="sc">-</span>arm.y)</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Widen cytokines (one column per cytokine)</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Clean names: replace hyphens with underscores in ALL column names</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>luminex_wide <span class="ot">&lt;-</span> luminex <span class="sc">%&gt;%</span></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(limits <span class="sc">==</span> <span class="st">"not_censored"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(sample_id, cytokine, conc) <span class="sc">%&gt;%</span></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_wider</span>(<span class="at">names_from =</span> cytokine, <span class="at">values_from =</span> conc)</span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a><span class="co"># Replace hyphens in column names with underscores</span></span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a><span class="fu">names</span>(luminex_wide) <span class="ot">&lt;-</span> <span class="fu">str_replace_all</span>(<span class="fu">names</span>(luminex_wide), <span class="st">"-"</span>, <span class="st">"_"</span>)</span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>cyt_names <span class="ot">&lt;-</span> <span class="fu">setdiff</span>(<span class="fu">names</span>(luminex_wide), <span class="st">"sample_id"</span>)</span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a><span class="co"># Join cytokine values onto samples</span></span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a>data_cyt <span class="ot">&lt;-</span> samples <span class="sc">%&gt;%</span></span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(luminex_wide, <span class="at">by =</span> <span class="st">"sample_id"</span>)</span>
+<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a><span class="co"># Join flow cytometry</span></span>
+<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a>data_full <span class="ot">&lt;-</span> data_cyt <span class="sc">%&gt;%</span></span>
+<span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(flow, <span class="at">by =</span> <span class="st">"sample_id"</span>)</span>
+<span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a><span class="fu">glimpse</span>(data_full)</span>
+<span id="cb2-28"><a href="#cb2-28" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Rows: 108</span></span>
+<span id="cb2-29"><a href="#cb2-29" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Columns: 25</span></span>
+<span id="cb2-30"><a href="#cb2-30" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; $ pid                &lt;chr&gt; "pid_12", "pid_04", "pid_26", "pid_08", "pid_16", "…</span></span>
+<span id="cb2-31"><a href="#cb2-31" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; $ time_point         &lt;chr&gt; "week_post", "week_post", "onset", "end_bleeding", …</span></span>
+<span id="cb2-32"><a href="#cb2-32" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; $ arm                &lt;chr&gt; "birth_control", "birth_control", "birth_control", …</span></span>
+<span id="cb2-33"><a href="#cb2-33" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; $ sample_id          &lt;chr&gt; "SAMP001", "SAMP002", "SAMP003", "SAMP004", "SAMP00…</span></span>
+<span id="cb2-34"><a href="#cb2-34" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; $ age                &lt;dbl&gt; 30, 31, 29, 30, 31, 33, 31, 29, 30, 34, 30, 29, 30,…</span></span>
+<span id="cb2-35"><a href="#cb2-35" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; $ pcos_status        &lt;chr&gt; "no disease", "pcos", "no disease", "no disease", "…</span></span>
+<span id="cb2-36"><a href="#cb2-36" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; $ period_product     &lt;chr&gt; "tampon", "pad", "tampon", "menstrual_cup", "pad", …</span></span>
+<span id="cb2-37"><a href="#cb2-37" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; $ sex                &lt;chr&gt; "female", "female", "female", "female", "female", "…</span></span>
+<span id="cb2-38"><a href="#cb2-38" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; $ IL_1a              &lt;dbl&gt; 9.424212, 53.934976, 191.520622, 125.987758, 11.336…</span></span>
+<span id="cb2-39"><a href="#cb2-39" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; $ IL_1b              &lt;dbl&gt; 0.8890026, NA, 1.3386883, 11.3879657, NA, 370.90702…</span></span>
+<span id="cb2-40"><a href="#cb2-40" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; $ MIG                &lt;dbl&gt; 89.693983, 61.706487, NA, NA, 153.010108, 4.581469,…</span></span>
+<span id="cb2-41"><a href="#cb2-41" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; $ IFNg               &lt;dbl&gt; NA, NA, 2.949544, 4.777207, NA, 1.770491, 1.534639,…</span></span>
+<span id="cb2-42"><a href="#cb2-42" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; $ IP_10              &lt;dbl&gt; 57.4500708, 33.4978474, 2.8166343, 0.9296425, 3.234…</span></span>
+<span id="cb2-43"><a href="#cb2-43" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; $ MIP_3a             &lt;dbl&gt; 6.5506137, 7.1456528, NA, 0.7100304, 30.2926570, 2.…</span></span>
+<span id="cb2-44"><a href="#cb2-44" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; $ IL_6               &lt;dbl&gt; NA, NA, 28.6634758, 1.8298285, 0.4589363, 7.8777020…</span></span>
+<span id="cb2-45"><a href="#cb2-45" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; $ TNFa               &lt;dbl&gt; NA, NA, NA, 1.038203, NA, NA, 12.074762, NA, 2.9364…</span></span>
+<span id="cb2-46"><a href="#cb2-46" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; $ live_cd19_negative &lt;dbl&gt; 158332, 105670, 310305, 738273, 168895, 333240, 117…</span></span>
+<span id="cb2-47"><a href="#cb2-47" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; $ cd45_negative      &lt;dbl&gt; 80327, 39124, 254821, 692237, 163627, 240537, 24718…</span></span>
+<span id="cb2-48"><a href="#cb2-48" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; $ cd45_positive      &lt;dbl&gt; 71141, 62616, 49552, 44545, 4739, 90305, 90939, 666…</span></span>
+<span id="cb2-49"><a href="#cb2-49" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; $ neutrophils        &lt;dbl&gt; 58727, 57525, 14106, 25732, 3275, 65707, 84360, 460…</span></span>
+<span id="cb2-50"><a href="#cb2-50" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; $ non_neutrophils    &lt;dbl&gt; 12412, 5089, 35445, 18813, 1463, 24596, 6576, 20623…</span></span>
+<span id="cb2-51"><a href="#cb2-51" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; $ cd3_negative       &lt;dbl&gt; 5839, 3078, 15124, 8681, 469, 14864, 4171, 9506, 56…</span></span>
+<span id="cb2-52"><a href="#cb2-52" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; $ cd3_positive       &lt;dbl&gt; 5802, 1765, 17358, 8933, 716, 8853, 1786, 8713, 897…</span></span>
+<span id="cb2-53"><a href="#cb2-53" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; $ cd4_t_cells        &lt;dbl&gt; 2740, 765, 9294, 5307, 332, 4896, 940, 4545, 4586, …</span></span>
+<span id="cb2-54"><a href="#cb2-54" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; $ cd8_t_cells        &lt;dbl&gt; 2257, 248, 4367, 2994, 154, 2951, 531, 2799, 2963, …</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<hr>
+</section>
+</section>
+<section id="summary-tables-with-p-values" class="level1">
+<h1>2. Summary Tables with P-values</h1>
+<section id="cytokine-levels-by-birth-control-arm" class="level2">
+<h2 class="anchored" data-anchor-id="cytokine-levels-by-birth-control-arm">2.1 Cytokine levels by birth control arm</h2>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Helper: run a t-test for each cytokine and return a tidy table</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>cyt_arm <span class="ot">&lt;-</span> data_cyt <span class="sc">%&gt;%</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_longer</span>(<span class="at">cols =</span> <span class="fu">all_of</span>(cyt_names),</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>               <span class="at">names_to =</span> <span class="st">"cytokine"</span>, <span class="at">values_to =</span> <span class="st">"conc"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">drop_na</span>(conc, arm)</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>cyt_arm <span class="sc">%&gt;%</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(cytokine, arm) <span class="sc">%&gt;%</span></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">n =</span> <span class="fu">n</span>(),</span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>            <span class="at">mean_conc =</span> <span class="fu">mean</span>(conc, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>            <span class="at">sd_conc   =</span> <span class="fu">sd</span>(conc, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>            <span class="at">.groups =</span> <span class="st">"drop"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_wider</span>(<span class="at">names_from =</span> arm,</span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>              <span class="at">values_from =</span> <span class="fu">c</span>(n, mean_conc, sd_conc),</span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>              <span class="at">names_glue =</span> <span class="st">"{arm}_{.value}"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a>  <span class="co"># add p-values from t-test</span></span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(</span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a>    cyt_arm <span class="sc">%&gt;%</span></span>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a>      <span class="fu">group_by</span>(cytokine) <span class="sc">%&gt;%</span></span>
+<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a>      <span class="fu">summarise</span>(<span class="at">p_value =</span> <span class="fu">t.test</span>(conc <span class="sc">~</span> arm)<span class="sc">$</span>p.value, <span class="at">.groups =</span> <span class="st">"drop"</span>),</span>
+<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a>    <span class="at">by =</span> <span class="st">"cytokine"</span></span>
+<span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span></span>
+<span id="cb3-23"><a href="#cb3-23" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="fu">across</span>(<span class="fu">where</span>(is.numeric), <span class="sc">~</span> <span class="fu">round</span>(., <span class="dv">3</span>))) <span class="sc">%&gt;%</span></span>
+<span id="cb3-24"><a href="#cb3-24" aria-hidden="true" tabindex="-1"></a>  <span class="fu">kable</span>(<span class="at">caption =</span> <span class="st">"Cytokine concentrations by birth control arm (t-test)"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<caption>Cytokine concentrations by birth control arm (t-test)</caption>
+<colgroup>
+<col style="width: 6%">
+<col style="width: 10%">
+<col style="width: 12%">
+<col style="width: 16%">
+<col style="width: 18%">
+<col style="width: 14%">
+<col style="width: 16%">
+<col style="width: 5%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">cytokine</th>
+<th style="text-align: right;">birth_control_n</th>
+<th style="text-align: right;">no_birth_control_n</th>
+<th style="text-align: right;">birth_control_mean_conc</th>
+<th style="text-align: right;">no_birth_control_mean_conc</th>
+<th style="text-align: right;">birth_control_sd_conc</th>
+<th style="text-align: right;">no_birth_control_sd_conc</th>
+<th style="text-align: right;">p_value</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">IFNg</td>
+<td style="text-align: right;">36</td>
+<td style="text-align: right;">34</td>
+<td style="text-align: right;">4.261</td>
+<td style="text-align: right;">5.661</td>
+<td style="text-align: right;">8.985</td>
+<td style="text-align: right;">6.508</td>
+<td style="text-align: right;">0.456</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">IL_1a</td>
+<td style="text-align: right;">60</td>
+<td style="text-align: right;">47</td>
+<td style="text-align: right;">119.493</td>
+<td style="text-align: right;">269.046</td>
+<td style="text-align: right;">164.935</td>
+<td style="text-align: right;">435.754</td>
+<td style="text-align: right;">0.030</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">IL_1b</td>
+<td style="text-align: right;">40</td>
+<td style="text-align: right;">35</td>
+<td style="text-align: right;">51.747</td>
+<td style="text-align: right;">35.404</td>
+<td style="text-align: right;">122.947</td>
+<td style="text-align: right;">50.381</td>
+<td style="text-align: right;">0.445</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">IL_6</td>
+<td style="text-align: right;">38</td>
+<td style="text-align: right;">31</td>
+<td style="text-align: right;">20.466</td>
+<td style="text-align: right;">22.758</td>
+<td style="text-align: right;">50.196</td>
+<td style="text-align: right;">93.271</td>
+<td style="text-align: right;">0.903</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">IP_10</td>
+<td style="text-align: right;">57</td>
+<td style="text-align: right;">45</td>
+<td style="text-align: right;">73.145</td>
+<td style="text-align: right;">43.969</td>
+<td style="text-align: right;">256.667</td>
+<td style="text-align: right;">105.135</td>
+<td style="text-align: right;">0.438</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">MIG</td>
+<td style="text-align: right;">52</td>
+<td style="text-align: right;">37</td>
+<td style="text-align: right;">252.626</td>
+<td style="text-align: right;">209.596</td>
+<td style="text-align: right;">681.947</td>
+<td style="text-align: right;">409.148</td>
+<td style="text-align: right;">0.712</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">MIP_3a</td>
+<td style="text-align: right;">53</td>
+<td style="text-align: right;">41</td>
+<td style="text-align: right;">13.916</td>
+<td style="text-align: right;">15.891</td>
+<td style="text-align: right;">37.239</td>
+<td style="text-align: right;">42.773</td>
+<td style="text-align: right;">0.815</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">TNFa</td>
+<td style="text-align: right;">23</td>
+<td style="text-align: right;">28</td>
+<td style="text-align: right;">3.324</td>
+<td style="text-align: right;">14.801</td>
+<td style="text-align: right;">3.940</td>
+<td style="text-align: right;">34.517</td>
+<td style="text-align: right;">0.092</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</section>
+<section id="cytokine-levels-by-time-point" class="level2">
+<h2 class="anchored" data-anchor-id="cytokine-levels-by-time-point">2.2 Cytokine levels by time point</h2>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>cyt_time <span class="ot">&lt;-</span> data_cyt <span class="sc">%&gt;%</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_longer</span>(<span class="at">cols =</span> <span class="fu">all_of</span>(cyt_names),</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>               <span class="at">names_to =</span> <span class="st">"cytokine"</span>, <span class="at">values_to =</span> <span class="st">"conc"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">drop_na</span>(conc, time_point)</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>cyt_time <span class="sc">%&gt;%</span></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(cytokine, time_point) <span class="sc">%&gt;%</span></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">mean_conc =</span> <span class="fu">mean</span>(conc, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>            <span class="at">sd_conc   =</span> <span class="fu">sd</span>(conc, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>            <span class="at">n =</span> <span class="fu">n</span>(),</span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>            <span class="at">.groups =</span> <span class="st">"drop"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="fu">across</span>(<span class="fu">where</span>(is.numeric), <span class="sc">~</span> <span class="fu">round</span>(., <span class="dv">3</span>))) <span class="sc">%&gt;%</span></span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">kable</span>(<span class="at">caption =</span> <span class="st">"Cytokine concentrations by menstrual cycle time point"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<caption>Cytokine concentrations by menstrual cycle time point</caption>
+<thead>
+<tr class="header">
+<th style="text-align: left;">cytokine</th>
+<th style="text-align: left;">time_point</th>
+<th style="text-align: right;">mean_conc</th>
+<th style="text-align: right;">sd_conc</th>
+<th style="text-align: right;">n</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">IFNg</td>
+<td style="text-align: left;">end_bleeding</td>
+<td style="text-align: right;">6.310</td>
+<td style="text-align: right;">10.590</td>
+<td style="text-align: right;">25</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">IFNg</td>
+<td style="text-align: left;">onset</td>
+<td style="text-align: right;">5.280</td>
+<td style="text-align: right;">7.240</td>
+<td style="text-align: right;">26</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">IFNg</td>
+<td style="text-align: left;">week_post</td>
+<td style="text-align: right;">3.124</td>
+<td style="text-align: right;">3.164</td>
+<td style="text-align: right;">8</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">IFNg</td>
+<td style="text-align: left;">week_prior</td>
+<td style="text-align: right;">2.346</td>
+<td style="text-align: right;">1.884</td>
+<td style="text-align: right;">11</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">IL_1a</td>
+<td style="text-align: left;">end_bleeding</td>
+<td style="text-align: right;">313.141</td>
+<td style="text-align: right;">373.422</td>
+<td style="text-align: right;">27</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">IL_1a</td>
+<td style="text-align: left;">onset</td>
+<td style="text-align: right;">337.858</td>
+<td style="text-align: right;">452.207</td>
+<td style="text-align: right;">26</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">IL_1a</td>
+<td style="text-align: left;">week_post</td>
+<td style="text-align: right;">51.673</td>
+<td style="text-align: right;">53.680</td>
+<td style="text-align: right;">27</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">IL_1a</td>
+<td style="text-align: left;">week_prior</td>
+<td style="text-align: right;">43.721</td>
+<td style="text-align: right;">42.322</td>
+<td style="text-align: right;">27</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">IL_1b</td>
+<td style="text-align: left;">end_bleeding</td>
+<td style="text-align: right;">29.295</td>
+<td style="text-align: right;">49.091</td>
+<td style="text-align: right;">26</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">IL_1b</td>
+<td style="text-align: left;">onset</td>
+<td style="text-align: right;">82.692</td>
+<td style="text-align: right;">144.984</td>
+<td style="text-align: right;">27</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">IL_1b</td>
+<td style="text-align: left;">week_post</td>
+<td style="text-align: right;">17.140</td>
+<td style="text-align: right;">25.024</td>
+<td style="text-align: right;">11</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">IL_1b</td>
+<td style="text-align: left;">week_prior</td>
+<td style="text-align: right;">11.467</td>
+<td style="text-align: right;">14.646</td>
+<td style="text-align: right;">11</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">IL_6</td>
+<td style="text-align: left;">end_bleeding</td>
+<td style="text-align: right;">40.359</td>
+<td style="text-align: right;">110.413</td>
+<td style="text-align: right;">27</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">IL_6</td>
+<td style="text-align: left;">onset</td>
+<td style="text-align: right;">13.917</td>
+<td style="text-align: right;">27.704</td>
+<td style="text-align: right;">27</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">IL_6</td>
+<td style="text-align: left;">week_post</td>
+<td style="text-align: right;">0.544</td>
+<td style="text-align: right;">0.421</td>
+<td style="text-align: right;">10</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">IL_6</td>
+<td style="text-align: left;">week_prior</td>
+<td style="text-align: right;">2.467</td>
+<td style="text-align: right;">2.217</td>
+<td style="text-align: right;">5</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">IP_10</td>
+<td style="text-align: left;">end_bleeding</td>
+<td style="text-align: right;">11.950</td>
+<td style="text-align: right;">33.620</td>
+<td style="text-align: right;">24</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">IP_10</td>
+<td style="text-align: left;">onset</td>
+<td style="text-align: right;">15.848</td>
+<td style="text-align: right;">27.463</td>
+<td style="text-align: right;">24</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">IP_10</td>
+<td style="text-align: left;">week_post</td>
+<td style="text-align: right;">147.322</td>
+<td style="text-align: right;">372.243</td>
+<td style="text-align: right;">27</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">IP_10</td>
+<td style="text-align: left;">week_prior</td>
+<td style="text-align: right;">55.670</td>
+<td style="text-align: right;">96.542</td>
+<td style="text-align: right;">27</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">MIG</td>
+<td style="text-align: left;">end_bleeding</td>
+<td style="text-align: right;">21.301</td>
+<td style="text-align: right;">18.066</td>
+<td style="text-align: right;">19</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">MIG</td>
+<td style="text-align: left;">onset</td>
+<td style="text-align: right;">28.599</td>
+<td style="text-align: right;">60.108</td>
+<td style="text-align: right;">16</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">MIG</td>
+<td style="text-align: left;">week_post</td>
+<td style="text-align: right;">303.725</td>
+<td style="text-align: right;">618.153</td>
+<td style="text-align: right;">27</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">MIG</td>
+<td style="text-align: left;">week_prior</td>
+<td style="text-align: right;">438.100</td>
+<td style="text-align: right;">808.573</td>
+<td style="text-align: right;">27</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">MIP_3a</td>
+<td style="text-align: left;">end_bleeding</td>
+<td style="text-align: right;">1.913</td>
+<td style="text-align: right;">1.210</td>
+<td style="text-align: right;">19</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">MIP_3a</td>
+<td style="text-align: left;">onset</td>
+<td style="text-align: right;">2.316</td>
+<td style="text-align: right;">2.832</td>
+<td style="text-align: right;">21</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">MIP_3a</td>
+<td style="text-align: left;">week_post</td>
+<td style="text-align: right;">19.993</td>
+<td style="text-align: right;">49.764</td>
+<td style="text-align: right;">27</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">MIP_3a</td>
+<td style="text-align: left;">week_prior</td>
+<td style="text-align: right;">28.307</td>
+<td style="text-align: right;">51.414</td>
+<td style="text-align: right;">27</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">TNFa</td>
+<td style="text-align: left;">end_bleeding</td>
+<td style="text-align: right;">7.708</td>
+<td style="text-align: right;">13.917</td>
+<td style="text-align: right;">20</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">TNFa</td>
+<td style="text-align: left;">onset</td>
+<td style="text-align: right;">15.014</td>
+<td style="text-align: right;">38.202</td>
+<td style="text-align: right;">21</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">TNFa</td>
+<td style="text-align: left;">week_post</td>
+<td style="text-align: right;">1.529</td>
+<td style="text-align: right;">0.949</td>
+<td style="text-align: right;">4</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">TNFa</td>
+<td style="text-align: left;">week_prior</td>
+<td style="text-align: right;">2.550</td>
+<td style="text-align: right;">3.368</td>
+<td style="text-align: right;">6</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co"># ANOVA p-values for time point effect on each cytokine</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>cyt_time <span class="sc">%&gt;%</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(cytokine) <span class="sc">%&gt;%</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">nest</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">anova_p =</span> <span class="fu">map_dbl</span>(data, <span class="sc">~</span> <span class="fu">aov</span>(conc <span class="sc">~</span> time_point, <span class="at">data =</span> .x) <span class="sc">%&gt;%</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>                             <span class="fu">summary</span>() <span class="sc">%&gt;%</span> <span class="fu">pluck</span>(<span class="dv">1</span>, <span class="st">"Pr(&gt;F)"</span>, <span class="dv">1</span>))) <span class="sc">%&gt;%</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(cytokine, anova_p) <span class="sc">%&gt;%</span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="fu">across</span>(<span class="fu">where</span>(is.numeric), <span class="sc">~</span> <span class="fu">round</span>(., <span class="dv">4</span>))) <span class="sc">%&gt;%</span></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">kable</span>(<span class="at">caption =</span> <span class="st">"ANOVA p-values: does cytokine concentration vary by time point?"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<table class="caption-top table">
+<caption>ANOVA p-values: does cytokine concentration vary by time point?</caption>
+<thead>
+<tr class="header">
+<th style="text-align: left;">cytokine</th>
+<th style="text-align: right;">anova_p</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">IL_1a</td>
+<td style="text-align: right;">0.0001</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">IL_1b</td>
+<td style="text-align: right;">0.0645</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">MIG</td>
+<td style="text-align: right;">0.0382</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">IP_10</td>
+<td style="text-align: right;">0.0570</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">MIP_3a</td>
+<td style="text-align: right;">0.0492</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">IFNg</td>
+<td style="text-align: right;">0.4954</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">IL_6</td>
+<td style="text-align: right;">0.3490</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">TNFa</td>
+<td style="text-align: right;">0.6228</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="pcos-status" class="level2">
+<h2 class="anchored" data-anchor-id="pcos-status">2.3 PCOS status</h2>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>cyt_pcos <span class="ot">&lt;-</span> data_cyt <span class="sc">%&gt;%</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_longer</span>(<span class="at">cols =</span> <span class="fu">all_of</span>(cyt_names),</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>               <span class="at">names_to =</span> <span class="st">"cytokine"</span>, <span class="at">values_to =</span> <span class="st">"conc"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">drop_na</span>(conc, pcos_status)</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>cyt_pcos <span class="sc">%&gt;%</span></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(cytokine, pcos_status) <span class="sc">%&gt;%</span></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">mean_conc =</span> <span class="fu">mean</span>(conc, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>            <span class="at">sd_conc   =</span> <span class="fu">sd</span>(conc, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>            <span class="at">n =</span> <span class="fu">n</span>(),</span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>            <span class="at">.groups =</span> <span class="st">"drop"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_wider</span>(<span class="at">names_from =</span> pcos_status,</span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a>              <span class="at">values_from =</span> <span class="fu">c</span>(mean_conc, sd_conc, n),</span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a>              <span class="at">names_glue =</span> <span class="st">"{pcos_status}_{.value}"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(</span>
+<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a>    cyt_pcos <span class="sc">%&gt;%</span></span>
+<span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a>      <span class="fu">group_by</span>(cytokine) <span class="sc">%&gt;%</span></span>
+<span id="cb6-18"><a href="#cb6-18" aria-hidden="true" tabindex="-1"></a>      <span class="fu">summarise</span>(<span class="at">p_value =</span> <span class="fu">t.test</span>(conc <span class="sc">~</span> pcos_status)<span class="sc">$</span>p.value, <span class="at">.groups =</span> <span class="st">"drop"</span>),</span>
+<span id="cb6-19"><a href="#cb6-19" aria-hidden="true" tabindex="-1"></a>    <span class="at">by =</span> <span class="st">"cytokine"</span></span>
+<span id="cb6-20"><a href="#cb6-20" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span></span>
+<span id="cb6-21"><a href="#cb6-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="fu">across</span>(<span class="fu">where</span>(is.numeric), <span class="sc">~</span> <span class="fu">round</span>(., <span class="dv">3</span>))) <span class="sc">%&gt;%</span></span>
+<span id="cb6-22"><a href="#cb6-22" aria-hidden="true" tabindex="-1"></a>  <span class="fu">kable</span>(<span class="at">caption =</span> <span class="st">"Cytokine concentrations by PCOS status (t-test)"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<caption>Cytokine concentrations by PCOS status (t-test)</caption>
+<colgroup>
+<col style="width: 8%">
+<col style="width: 20%">
+<col style="width: 14%">
+<col style="width: 18%">
+<col style="width: 12%">
+<col style="width: 12%">
+<col style="width: 6%">
+<col style="width: 7%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">cytokine</th>
+<th style="text-align: right;">no disease_mean_conc</th>
+<th style="text-align: right;">pcos_mean_conc</th>
+<th style="text-align: right;">no disease_sd_conc</th>
+<th style="text-align: right;">pcos_sd_conc</th>
+<th style="text-align: right;">no disease_n</th>
+<th style="text-align: right;">pcos_n</th>
+<th style="text-align: right;">p_value</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">IFNg</td>
+<td style="text-align: right;">3.168</td>
+<td style="text-align: right;">6.522</td>
+<td style="text-align: right;">2.265</td>
+<td style="text-align: right;">10.405</td>
+<td style="text-align: right;">33</td>
+<td style="text-align: right;">37</td>
+<td style="text-align: right;">0.063</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">IL_1a</td>
+<td style="text-align: right;">165.909</td>
+<td style="text-align: right;">203.409</td>
+<td style="text-align: right;">280.607</td>
+<td style="text-align: right;">356.830</td>
+<td style="text-align: right;">52</td>
+<td style="text-align: right;">55</td>
+<td style="text-align: right;">0.546</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">IL_1b</td>
+<td style="text-align: right;">44.512</td>
+<td style="text-align: right;">43.796</td>
+<td style="text-align: right;">98.086</td>
+<td style="text-align: right;">95.303</td>
+<td style="text-align: right;">34</td>
+<td style="text-align: right;">41</td>
+<td style="text-align: right;">0.975</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">IL_6</td>
+<td style="text-align: right;">16.868</td>
+<td style="text-align: right;">25.739</td>
+<td style="text-align: right;">41.990</td>
+<td style="text-align: right;">92.044</td>
+<td style="text-align: right;">33</td>
+<td style="text-align: right;">36</td>
+<td style="text-align: right;">0.604</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">IP_10</td>
+<td style="text-align: right;">92.575</td>
+<td style="text-align: right;">30.410</td>
+<td style="text-align: right;">288.427</td>
+<td style="text-align: right;">45.022</td>
+<td style="text-align: right;">49</td>
+<td style="text-align: right;">53</td>
+<td style="text-align: right;">0.142</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">MIG</td>
+<td style="text-align: right;">235.448</td>
+<td style="text-align: right;">234.042</td>
+<td style="text-align: right;">707.574</td>
+<td style="text-align: right;">433.161</td>
+<td style="text-align: right;">44</td>
+<td style="text-align: right;">45</td>
+<td style="text-align: right;">0.991</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">MIP_3a</td>
+<td style="text-align: right;">20.853</td>
+<td style="text-align: right;">9.197</td>
+<td style="text-align: right;">55.308</td>
+<td style="text-align: right;">12.587</td>
+<td style="text-align: right;">45</td>
+<td style="text-align: right;">49</td>
+<td style="text-align: right;">0.174</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">TNFa</td>
+<td style="text-align: right;">3.672</td>
+<td style="text-align: right;">14.141</td>
+<td style="text-align: right;">4.223</td>
+<td style="text-align: right;">34.031</td>
+<td style="text-align: right;">22</td>
+<td style="text-align: right;">29</td>
+<td style="text-align: right;">0.112</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</section>
+<section id="flow-cytometry-cell-counts-by-birth-control-arm" class="level2">
+<h2 class="anchored" data-anchor-id="flow-cytometry-cell-counts-by-birth-control-arm">2.4 Flow cytometry cell counts by birth control arm</h2>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>flow_joined <span class="ot">&lt;-</span> flow <span class="sc">%&gt;%</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(samples, <span class="at">by =</span> <span class="st">"sample_id"</span>, <span class="at">relationship =</span> <span class="st">"many-to-one"</span>)</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Cell types to test</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>cell_cols <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"live_cd19_negative"</span>, <span class="st">"cd45_negative"</span>, <span class="st">"cd45_positive"</span>,</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>               <span class="st">"neutrophils"</span>, <span class="st">"non_neutrophils"</span>, <span class="st">"cd3_negative"</span>,</span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>               <span class="st">"cd3_positive"</span>, <span class="st">"cd4_t_cells"</span>, <span class="st">"cd8_t_cells"</span>)</span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>flow_joined <span class="sc">%&gt;%</span></span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_longer</span>(<span class="at">cols =</span> <span class="fu">all_of</span>(cell_cols), <span class="at">names_to =</span> <span class="st">"cell_type"</span>,</span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>               <span class="at">values_to =</span> <span class="st">"count"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(cell_type, arm) <span class="sc">%&gt;%</span></span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">mean_count =</span> <span class="fu">mean</span>(count, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a>            <span class="at">sd_count   =</span> <span class="fu">sd</span>(count, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a>            <span class="at">n =</span> <span class="fu">n</span>(),</span>
+<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a>            <span class="at">.groups =</span> <span class="st">"drop"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_wider</span>(<span class="at">names_from =</span> arm,</span>
+<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a>              <span class="at">values_from =</span> <span class="fu">c</span>(mean_count, sd_count, n),</span>
+<span id="cb7-19"><a href="#cb7-19" aria-hidden="true" tabindex="-1"></a>              <span class="at">names_glue =</span> <span class="st">"{arm}_{.value}"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb7-20"><a href="#cb7-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(</span>
+<span id="cb7-21"><a href="#cb7-21" aria-hidden="true" tabindex="-1"></a>    flow_joined <span class="sc">%&gt;%</span></span>
+<span id="cb7-22"><a href="#cb7-22" aria-hidden="true" tabindex="-1"></a>      <span class="fu">pivot_longer</span>(<span class="at">cols =</span> <span class="fu">all_of</span>(cell_cols), <span class="at">names_to =</span> <span class="st">"cell_type"</span>,</span>
+<span id="cb7-23"><a href="#cb7-23" aria-hidden="true" tabindex="-1"></a>                   <span class="at">values_to =</span> <span class="st">"count"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb7-24"><a href="#cb7-24" aria-hidden="true" tabindex="-1"></a>      <span class="fu">group_by</span>(cell_type) <span class="sc">%&gt;%</span></span>
+<span id="cb7-25"><a href="#cb7-25" aria-hidden="true" tabindex="-1"></a>      <span class="fu">summarise</span>(<span class="at">p_value =</span> <span class="fu">t.test</span>(count <span class="sc">~</span> arm)<span class="sc">$</span>p.value, <span class="at">.groups =</span> <span class="st">"drop"</span>),</span>
+<span id="cb7-26"><a href="#cb7-26" aria-hidden="true" tabindex="-1"></a>    <span class="at">by =</span> <span class="st">"cell_type"</span></span>
+<span id="cb7-27"><a href="#cb7-27" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span></span>
+<span id="cb7-28"><a href="#cb7-28" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="fu">across</span>(<span class="fu">where</span>(is.numeric), <span class="sc">~</span> <span class="fu">round</span>(., <span class="dv">3</span>))) <span class="sc">%&gt;%</span></span>
+<span id="cb7-29"><a href="#cb7-29" aria-hidden="true" tabindex="-1"></a>  <span class="fu">kable</span>(<span class="at">caption =</span> <span class="st">"Immune cell counts by birth control arm (t-test)"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<caption>Immune cell counts by birth control arm (t-test)</caption>
+<colgroup>
+<col style="width: 11%">
+<col style="width: 15%">
+<col style="width: 17%">
+<col style="width: 14%">
+<col style="width: 15%">
+<col style="width: 9%">
+<col style="width: 11%">
+<col style="width: 4%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">cell_type</th>
+<th style="text-align: right;">birth_control_mean_count</th>
+<th style="text-align: right;">no_birth_control_mean_count</th>
+<th style="text-align: right;">birth_control_sd_count</th>
+<th style="text-align: right;">no_birth_control_sd_count</th>
+<th style="text-align: right;">birth_control_n</th>
+<th style="text-align: right;">no_birth_control_n</th>
+<th style="text-align: right;">p_value</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">cd3_negative</td>
+<td style="text-align: right;">9269.350</td>
+<td style="text-align: right;">14906.021</td>
+<td style="text-align: right;">8619.078</td>
+<td style="text-align: right;">13656.662</td>
+<td style="text-align: right;">60</td>
+<td style="text-align: right;">48</td>
+<td style="text-align: right;">0.015</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">cd3_positive</td>
+<td style="text-align: right;">7206.700</td>
+<td style="text-align: right;">8849.062</td>
+<td style="text-align: right;">4603.819</td>
+<td style="text-align: right;">7504.520</td>
+<td style="text-align: right;">60</td>
+<td style="text-align: right;">48</td>
+<td style="text-align: right;">0.188</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">cd45_negative</td>
+<td style="text-align: right;">213592.133</td>
+<td style="text-align: right;">282587.792</td>
+<td style="text-align: right;">197591.364</td>
+<td style="text-align: right;">264786.552</td>
+<td style="text-align: right;">60</td>
+<td style="text-align: right;">48</td>
+<td style="text-align: right;">0.137</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">cd45_positive</td>
+<td style="text-align: right;">90633.700</td>
+<td style="text-align: right;">102016.708</td>
+<td style="text-align: right;">68453.671</td>
+<td style="text-align: right;">73926.757</td>
+<td style="text-align: right;">60</td>
+<td style="text-align: right;">48</td>
+<td style="text-align: right;">0.413</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">cd4_t_cells</td>
+<td style="text-align: right;">3873.383</td>
+<td style="text-align: right;">4674.354</td>
+<td style="text-align: right;">2815.268</td>
+<td style="text-align: right;">3424.094</td>
+<td style="text-align: right;">60</td>
+<td style="text-align: right;">48</td>
+<td style="text-align: right;">0.195</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">cd8_t_cells</td>
+<td style="text-align: right;">2223.067</td>
+<td style="text-align: right;">2694.792</td>
+<td style="text-align: right;">1487.507</td>
+<td style="text-align: right;">2632.831</td>
+<td style="text-align: right;">60</td>
+<td style="text-align: right;">48</td>
+<td style="text-align: right;">0.272</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">live_cd19_negative</td>
+<td style="text-align: right;">309234.400</td>
+<td style="text-align: right;">390799.583</td>
+<td style="text-align: right;">197449.508</td>
+<td style="text-align: right;">280663.683</td>
+<td style="text-align: right;">60</td>
+<td style="text-align: right;">48</td>
+<td style="text-align: right;">0.092</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">neutrophils</td>
+<td style="text-align: right;">72492.317</td>
+<td style="text-align: right;">76173.062</td>
+<td style="text-align: right;">61947.188</td>
+<td style="text-align: right;">60514.748</td>
+<td style="text-align: right;">60</td>
+<td style="text-align: right;">48</td>
+<td style="text-align: right;">0.757</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">non_neutrophils</td>
+<td style="text-align: right;">18137.700</td>
+<td style="text-align: right;">25838.708</td>
+<td style="text-align: right;">12652.964</td>
+<td style="text-align: right;">20504.558</td>
+<td style="text-align: right;">60</td>
+<td style="text-align: right;">48</td>
+<td style="text-align: right;">0.026</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<hr>
+</section>
+</section>
+<section id="graphs" class="level1">
+<h1>3. Graphs</h1>
+<section id="cytokine-boxplots-birth-control-arm" class="level2">
+<h2 class="anchored" data-anchor-id="cytokine-boxplots-birth-control-arm">3.1 Cytokine boxplots — birth control arm</h2>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>cyt_long <span class="ot">&lt;-</span> data_cyt <span class="sc">%&gt;%</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_longer</span>(<span class="at">cols =</span> <span class="fu">all_of</span>(cyt_names),</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>               <span class="at">names_to =</span> <span class="st">"cytokine"</span>, <span class="at">values_to =</span> <span class="st">"conc"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">drop_na</span>(conc, arm)</span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(cyt_long, <span class="fu">aes</span>(<span class="at">x =</span> arm, <span class="at">y =</span> conc, <span class="at">fill =</span> arm)) <span class="sc">+</span></span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_boxplot</span>(<span class="at">alpha =</span> <span class="fl">0.7</span>) <span class="sc">+</span></span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_jitter</span>(<span class="at">width =</span> <span class="fl">0.15</span>, <span class="at">alpha =</span> <span class="fl">0.4</span>, <span class="at">size =</span> <span class="fl">1.5</span>) <span class="sc">+</span></span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span> cytokine, <span class="at">scales =</span> <span class="st">"free_y"</span>, <span class="at">ncol =</span> <span class="dv">4</span>) <span class="sc">+</span></span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_y_log10</span>() <span class="sc">+</span></span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Cytokine concentrations by birth control arm"</span>,</span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a>       <span class="at">subtitle =</span> <span class="st">"y-axis on log scale | jitter shows individual samples"</span>,</span>
+<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a>       <span class="at">x =</span> <span class="cn">NULL</span>, <span class="at">y =</span> <span class="st">"Concentration (pg/mL)"</span>) <span class="sc">+</span></span>
+<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span></span>
+<span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"bottom"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="menstrual-analysis_files/figure-html/boxplot-cyt-arm-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="cytokine-boxplots-time-point" class="level2">
+<h2 class="anchored" data-anchor-id="cytokine-boxplots-time-point">3.2 Cytokine boxplots — time point</h2>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>cyt_long_time <span class="ot">&lt;-</span> data_cyt <span class="sc">%&gt;%</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_longer</span>(<span class="at">cols =</span> <span class="fu">all_of</span>(cyt_names),</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>               <span class="at">names_to =</span> <span class="st">"cytokine"</span>, <span class="at">values_to =</span> <span class="st">"conc"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">drop_na</span>(conc, time_point)</span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(cyt_long_time, <span class="fu">aes</span>(<span class="at">x =</span> time_point, <span class="at">y =</span> conc, <span class="at">fill =</span> time_point)) <span class="sc">+</span></span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_boxplot</span>(<span class="at">alpha =</span> <span class="fl">0.7</span>) <span class="sc">+</span></span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_jitter</span>(<span class="at">width =</span> <span class="fl">0.15</span>, <span class="at">alpha =</span> <span class="fl">0.4</span>, <span class="at">size =</span> <span class="fl">1.5</span>) <span class="sc">+</span></span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span> cytokine, <span class="at">scales =</span> <span class="st">"free_y"</span>, <span class="at">ncol =</span> <span class="dv">4</span>) <span class="sc">+</span></span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_y_log10</span>() <span class="sc">+</span></span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Cytokine concentrations across menstrual cycle time points"</span>,</span>
+<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a>       <span class="at">subtitle =</span> <span class="st">"y-axis on log scale"</span>,</span>
+<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a>       <span class="at">x =</span> <span class="cn">NULL</span>, <span class="at">y =</span> <span class="st">"Concentration (pg/mL)"</span>) <span class="sc">+</span></span>
+<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span></span>
+<span id="cb9-15"><a href="#cb9-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"bottom"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="menstrual-analysis_files/figure-html/boxplot-cyt-time-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="cytokine-boxplots-pcos-status" class="level2">
+<h2 class="anchored" data-anchor-id="cytokine-boxplots-pcos-status">3.3 Cytokine boxplots — PCOS status</h2>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>cyt_long_pcos <span class="ot">&lt;-</span> data_cyt <span class="sc">%&gt;%</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_longer</span>(<span class="at">cols =</span> <span class="fu">all_of</span>(cyt_names),</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>               <span class="at">names_to =</span> <span class="st">"cytokine"</span>, <span class="at">values_to =</span> <span class="st">"conc"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">drop_na</span>(conc, pcos_status)</span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(cyt_long_pcos, <span class="fu">aes</span>(<span class="at">x =</span> pcos_status, <span class="at">y =</span> conc, <span class="at">fill =</span> pcos_status)) <span class="sc">+</span></span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_boxplot</span>(<span class="at">alpha =</span> <span class="fl">0.7</span>) <span class="sc">+</span></span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_jitter</span>(<span class="at">width =</span> <span class="fl">0.15</span>, <span class="at">alpha =</span> <span class="fl">0.4</span>, <span class="at">size =</span> <span class="fl">1.5</span>) <span class="sc">+</span></span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span> cytokine, <span class="at">scales =</span> <span class="st">"free_y"</span>, <span class="at">ncol =</span> <span class="dv">4</span>) <span class="sc">+</span></span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_y_log10</span>() <span class="sc">+</span></span>
+<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Cytokine concentrations by PCOS status"</span>,</span>
+<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a>       <span class="at">subtitle =</span> <span class="st">"y-axis on log scale"</span>,</span>
+<span id="cb10-13"><a href="#cb10-13" aria-hidden="true" tabindex="-1"></a>       <span class="at">x =</span> <span class="cn">NULL</span>, <span class="at">y =</span> <span class="st">"Concentration (pg/mL)"</span>) <span class="sc">+</span></span>
+<span id="cb10-14"><a href="#cb10-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span></span>
+<span id="cb10-15"><a href="#cb10-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"bottom"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="menstrual-analysis_files/figure-html/boxplot-cyt-pcos-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="immune-cell-counts-by-birth-control-arm" class="level2">
+<h2 class="anchored" data-anchor-id="immune-cell-counts-by-birth-control-arm">3.4 Immune cell counts by birth control arm</h2>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>flow_long <span class="ot">&lt;-</span> flow_joined <span class="sc">%&gt;%</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_longer</span>(<span class="at">cols =</span> <span class="fu">all_of</span>(cell_cols), <span class="at">names_to =</span> <span class="st">"cell_type"</span>,</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>               <span class="at">values_to =</span> <span class="st">"count"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">drop_na</span>(count, arm)</span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(flow_long, <span class="fu">aes</span>(<span class="at">x =</span> arm, <span class="at">y =</span> count, <span class="at">fill =</span> arm)) <span class="sc">+</span></span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_boxplot</span>(<span class="at">alpha =</span> <span class="fl">0.7</span>) <span class="sc">+</span></span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_jitter</span>(<span class="at">width =</span> <span class="fl">0.15</span>, <span class="at">alpha =</span> <span class="fl">0.4</span>, <span class="at">size =</span> <span class="fl">1.5</span>) <span class="sc">+</span></span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span> cell_type, <span class="at">scales =</span> <span class="st">"free_y"</span>, <span class="at">ncol =</span> <span class="dv">3</span>) <span class="sc">+</span></span>
+<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_y_log10</span>() <span class="sc">+</span></span>
+<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Immune cell counts by birth control arm"</span>,</span>
+<span id="cb11-12"><a href="#cb11-12" aria-hidden="true" tabindex="-1"></a>       <span class="at">subtitle =</span> <span class="st">"y-axis on log scale"</span>,</span>
+<span id="cb11-13"><a href="#cb11-13" aria-hidden="true" tabindex="-1"></a>       <span class="at">x =</span> <span class="cn">NULL</span>, <span class="at">y =</span> <span class="st">"Cell count"</span>) <span class="sc">+</span></span>
+<span id="cb11-14"><a href="#cb11-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span></span>
+<span id="cb11-15"><a href="#cb11-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"bottom"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="menstrual-analysis_files/figure-html/boxplot-flow-arm-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="correlation-heatmap-cytokines-and-immune-cells" class="level2">
+<h2 class="anchored" data-anchor-id="correlation-heatmap-cytokines-and-immune-cells">3.5 Correlation heatmap — cytokines and immune cells</h2>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(corrplot)</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Build a wide dataset with cytokines + key immune cells</span></span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>corr_data <span class="ot">&lt;-</span> data_full <span class="sc">%&gt;%</span></span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="fu">all_of</span>(cell_cols), <span class="fu">all_of</span>(cyt_names)) <span class="sc">%&gt;%</span></span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">drop_na</span>()</span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a>cm <span class="ot">&lt;-</span> <span class="fu">cor</span>(corr_data, <span class="at">use =</span> <span class="st">"pairwise.complete.obs"</span>)</span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a><span class="fu">corrplot</span>(cm, <span class="at">method =</span> <span class="st">"color"</span>, <span class="at">type =</span> <span class="st">"upper"</span>,</span>
+<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a>         <span class="at">tl.col =</span> <span class="st">"black"</span>, <span class="at">tl.cex =</span> <span class="fl">0.7</span>,</span>
+<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a>         <span class="at">addCoef.col =</span> <span class="st">"black"</span>, <span class="at">number.cex =</span> <span class="fl">0.5</span>,</span>
+<span id="cb12-13"><a href="#cb12-13" aria-hidden="true" tabindex="-1"></a>         <span class="at">title =</span> <span class="st">"Correlation: Cytokines × Immune Cells"</span>,</span>
+<span id="cb12-14"><a href="#cb12-14" aria-hidden="true" tabindex="-1"></a>         <span class="at">mar =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">2</span>, <span class="dv">0</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="menstrual-analysis_files/figure-html/corr-heatmap-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="scatter-plot-strongest-cytokineimmune-cell-relationship" class="level2">
+<h2 class="anchored" data-anchor-id="scatter-plot-strongest-cytokineimmune-cell-relationship">3.6 Scatter plot — strongest cytokine–immune cell relationship</h2>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>data_full <span class="sc">%&gt;%</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">drop_na</span>(IL_6, neutrophils) <span class="sc">%&gt;%</span></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> IL_6, <span class="at">y =</span> neutrophils, <span class="at">color =</span> arm)) <span class="sc">+</span></span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">size =</span> <span class="fl">2.5</span>, <span class="at">alpha =</span> <span class="fl">0.7</span>) <span class="sc">+</span></span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_smooth</span>(<span class="at">method =</span> <span class="st">"lm"</span>, <span class="at">se =</span> <span class="cn">TRUE</span>, <span class="at">alpha =</span> <span class="fl">0.2</span>) <span class="sc">+</span></span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_x_log10</span>() <span class="sc">+</span></span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_y_log10</span>() <span class="sc">+</span></span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"IL-6 vs Neutrophil count"</span>,</span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a>       <span class="at">subtitle =</span> <span class="st">"Coloured by birth control arm | both axes on log scale"</span>,</span>
+<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a>       <span class="at">x =</span> <span class="st">"IL-6 concentration (pg/mL)"</span>,</span>
+<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a>       <span class="at">y =</span> <span class="st">"Neutrophil count"</span>) <span class="sc">+</span></span>
+<span id="cb13-12"><a href="#cb13-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="menstrual-analysis_files/figure-html/scatter-example-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<hr>
+</section>
+</section>
+<section id="regression-models" class="level1">
+<h1>4. Regression Models</h1>
+<section id="linear-regression-cytokine-arm-age-pcos_status" class="level2">
+<h2 class="anchored" data-anchor-id="linear-regression-cytokine-arm-age-pcos_status">4.1 Linear regression: cytokine ~ arm + age + pcos_status</h2>
+<p>We model each cytokine as a function of birth control arm, age, and PCOS status.</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>cyt_reg <span class="ot">&lt;-</span> data_cyt <span class="sc">%&gt;%</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_longer</span>(<span class="at">cols =</span> <span class="fu">all_of</span>(cyt_names),</span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>               <span class="at">names_to =</span> <span class="st">"cytokine"</span>, <span class="at">values_to =</span> <span class="st">"conc"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">drop_na</span>(conc, arm, age, pcos_status) <span class="sc">%&gt;%</span></span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">conc_log =</span> <span class="fu">log10</span>(conc <span class="sc">+</span> <span class="dv">1</span>))</span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>models <span class="ot">&lt;-</span> cyt_reg <span class="sc">%&gt;%</span></span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(cytokine) <span class="sc">%&gt;%</span></span>
+<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">nest</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">model =</span> <span class="fu">map</span>(data, <span class="sc">~</span> <span class="fu">lm</span>(conc_log <span class="sc">~</span> arm <span class="sc">+</span> age <span class="sc">+</span> pcos_status, <span class="at">data =</span> .x)),</span>
+<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">tidied =</span> <span class="fu">map</span>(model, tidy)</span>
+<span id="cb14-13"><a href="#cb14-13" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span></span>
+<span id="cb14-14"><a href="#cb14-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">unnest</span>(tidied) <span class="sc">%&gt;%</span></span>
+<span id="cb14-15"><a href="#cb14-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(cytokine, term, estimate, std.error, statistic, p.value) <span class="sc">%&gt;%</span></span>
+<span id="cb14-16"><a href="#cb14-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="fu">across</span>(<span class="fu">where</span>(is.numeric), <span class="sc">~</span> <span class="fu">round</span>(., <span class="dv">4</span>)))</span>
+<span id="cb14-17"><a href="#cb14-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-18"><a href="#cb14-18" aria-hidden="true" tabindex="-1"></a><span class="fu">kable</span>(models, <span class="at">caption =</span> <span class="st">"Linear regression: log10(cytokine) ~ arm + age + pcos_status"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<table class="caption-top table">
+<caption>Linear regression: log10(cytokine) ~ arm + age + pcos_status</caption>
+<colgroup>
+<col style="width: 13%">
+<col style="width: 30%">
+<col style="width: 13%">
+<col style="width: 15%">
+<col style="width: 15%">
+<col style="width: 12%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">cytokine</th>
+<th style="text-align: left;">term</th>
+<th style="text-align: right;">estimate</th>
+<th style="text-align: right;">std.error</th>
+<th style="text-align: right;">statistic</th>
+<th style="text-align: right;">p.value</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">IL_1a</td>
+<td style="text-align: left;">(Intercept)</td>
+<td style="text-align: right;">2.3136</td>
+<td style="text-align: right;">0.7507</td>
+<td style="text-align: right;">3.0821</td>
+<td style="text-align: right;">0.0026</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">IL_1a</td>
+<td style="text-align: left;">armno_birth_control</td>
+<td style="text-align: right;">0.2917</td>
+<td style="text-align: right;">0.1317</td>
+<td style="text-align: right;">2.2142</td>
+<td style="text-align: right;">0.0290</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">IL_1a</td>
+<td style="text-align: left;">age</td>
+<td style="text-align: right;">-0.0184</td>
+<td style="text-align: right;">0.0246</td>
+<td style="text-align: right;">-0.7503</td>
+<td style="text-align: right;">0.4548</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">IL_1a</td>
+<td style="text-align: left;">pcos_statuspcos</td>
+<td style="text-align: right;">-0.0454</td>
+<td style="text-align: right;">0.1330</td>
+<td style="text-align: right;">-0.3412</td>
+<td style="text-align: right;">0.7337</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">IL_1b</td>
+<td style="text-align: left;">(Intercept)</td>
+<td style="text-align: right;">0.3473</td>
+<td style="text-align: right;">0.8635</td>
+<td style="text-align: right;">0.4022</td>
+<td style="text-align: right;">0.6887</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">IL_1b</td>
+<td style="text-align: left;">armno_birth_control</td>
+<td style="text-align: right;">0.0405</td>
+<td style="text-align: right;">0.1644</td>
+<td style="text-align: right;">0.2463</td>
+<td style="text-align: right;">0.8062</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">IL_1b</td>
+<td style="text-align: left;">age</td>
+<td style="text-align: right;">0.0230</td>
+<td style="text-align: right;">0.0285</td>
+<td style="text-align: right;">0.8079</td>
+<td style="text-align: right;">0.4219</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">IL_1b</td>
+<td style="text-align: left;">pcos_statuspcos</td>
+<td style="text-align: right;">0.0709</td>
+<td style="text-align: right;">0.1668</td>
+<td style="text-align: right;">0.4249</td>
+<td style="text-align: right;">0.6722</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">MIG</td>
+<td style="text-align: left;">(Intercept)</td>
+<td style="text-align: right;">2.1113</td>
+<td style="text-align: right;">0.9167</td>
+<td style="text-align: right;">2.3032</td>
+<td style="text-align: right;">0.0237</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">MIG</td>
+<td style="text-align: left;">armno_birth_control</td>
+<td style="text-align: right;">-0.0559</td>
+<td style="text-align: right;">0.1639</td>
+<td style="text-align: right;">-0.3411</td>
+<td style="text-align: right;">0.7339</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">MIG</td>
+<td style="text-align: left;">age</td>
+<td style="text-align: right;">-0.0152</td>
+<td style="text-align: right;">0.0298</td>
+<td style="text-align: right;">-0.5106</td>
+<td style="text-align: right;">0.6110</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">MIG</td>
+<td style="text-align: left;">pcos_statuspcos</td>
+<td style="text-align: right;">0.2019</td>
+<td style="text-align: right;">0.1632</td>
+<td style="text-align: right;">1.2370</td>
+<td style="text-align: right;">0.2195</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">IP_10</td>
+<td style="text-align: left;">(Intercept)</td>
+<td style="text-align: right;">1.2252</td>
+<td style="text-align: right;">0.7321</td>
+<td style="text-align: right;">1.6737</td>
+<td style="text-align: right;">0.0974</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">IP_10</td>
+<td style="text-align: left;">armno_birth_control</td>
+<td style="text-align: right;">-0.0861</td>
+<td style="text-align: right;">0.1361</td>
+<td style="text-align: right;">-0.6326</td>
+<td style="text-align: right;">0.5284</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">IP_10</td>
+<td style="text-align: left;">age</td>
+<td style="text-align: right;">0.0012</td>
+<td style="text-align: right;">0.0240</td>
+<td style="text-align: right;">0.0507</td>
+<td style="text-align: right;">0.9597</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">IP_10</td>
+<td style="text-align: left;">pcos_statuspcos</td>
+<td style="text-align: right;">-0.0778</td>
+<td style="text-align: right;">0.1370</td>
+<td style="text-align: right;">-0.5682</td>
+<td style="text-align: right;">0.5712</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">MIP_3a</td>
+<td style="text-align: left;">(Intercept)</td>
+<td style="text-align: right;">1.4881</td>
+<td style="text-align: right;">0.5731</td>
+<td style="text-align: right;">2.5965</td>
+<td style="text-align: right;">0.0110</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">MIP_3a</td>
+<td style="text-align: left;">armno_birth_control</td>
+<td style="text-align: right;">0.0618</td>
+<td style="text-align: right;">0.1079</td>
+<td style="text-align: right;">0.5727</td>
+<td style="text-align: right;">0.5683</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">MIP_3a</td>
+<td style="text-align: left;">age</td>
+<td style="text-align: right;">-0.0223</td>
+<td style="text-align: right;">0.0188</td>
+<td style="text-align: right;">-1.1850</td>
+<td style="text-align: right;">0.2392</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">MIP_3a</td>
+<td style="text-align: left;">pcos_statuspcos</td>
+<td style="text-align: right;">-0.0196</td>
+<td style="text-align: right;">0.1097</td>
+<td style="text-align: right;">-0.1789</td>
+<td style="text-align: right;">0.8584</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">IFNg</td>
+<td style="text-align: left;">(Intercept)</td>
+<td style="text-align: right;">0.7132</td>
+<td style="text-align: right;">0.3936</td>
+<td style="text-align: right;">1.8117</td>
+<td style="text-align: right;">0.0746</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">IFNg</td>
+<td style="text-align: left;">armno_birth_control</td>
+<td style="text-align: right;">0.1153</td>
+<td style="text-align: right;">0.0755</td>
+<td style="text-align: right;">1.5261</td>
+<td style="text-align: right;">0.1318</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">IFNg</td>
+<td style="text-align: left;">age</td>
+<td style="text-align: right;">-0.0060</td>
+<td style="text-align: right;">0.0129</td>
+<td style="text-align: right;">-0.4651</td>
+<td style="text-align: right;">0.6434</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">IFNg</td>
+<td style="text-align: left;">pcos_statuspcos</td>
+<td style="text-align: right;">0.1001</td>
+<td style="text-align: right;">0.0754</td>
+<td style="text-align: right;">1.3288</td>
+<td style="text-align: right;">0.1885</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">IL_6</td>
+<td style="text-align: left;">(Intercept)</td>
+<td style="text-align: right;">0.6700</td>
+<td style="text-align: right;">0.7790</td>
+<td style="text-align: right;">0.8601</td>
+<td style="text-align: right;">0.3929</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">IL_6</td>
+<td style="text-align: left;">armno_birth_control</td>
+<td style="text-align: right;">-0.1104</td>
+<td style="text-align: right;">0.1505</td>
+<td style="text-align: right;">-0.7336</td>
+<td style="text-align: right;">0.4658</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">IL_6</td>
+<td style="text-align: left;">age</td>
+<td style="text-align: right;">0.0038</td>
+<td style="text-align: right;">0.0254</td>
+<td style="text-align: right;">0.1507</td>
+<td style="text-align: right;">0.8807</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">IL_6</td>
+<td style="text-align: left;">pcos_statuspcos</td>
+<td style="text-align: right;">-0.0312</td>
+<td style="text-align: right;">0.1516</td>
+<td style="text-align: right;">-0.2057</td>
+<td style="text-align: right;">0.8377</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">TNFa</td>
+<td style="text-align: left;">(Intercept)</td>
+<td style="text-align: right;">-1.6925</td>
+<td style="text-align: right;">0.6351</td>
+<td style="text-align: right;">-2.6651</td>
+<td style="text-align: right;">0.0105</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">TNFa</td>
+<td style="text-align: left;">armno_birth_control</td>
+<td style="text-align: right;">0.1393</td>
+<td style="text-align: right;">0.1120</td>
+<td style="text-align: right;">1.2441</td>
+<td style="text-align: right;">0.2196</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">TNFa</td>
+<td style="text-align: left;">age</td>
+<td style="text-align: right;">0.0712</td>
+<td style="text-align: right;">0.0209</td>
+<td style="text-align: right;">3.4140</td>
+<td style="text-align: right;">0.0013</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">TNFa</td>
+<td style="text-align: left;">pcos_statuspcos</td>
+<td style="text-align: right;">0.0889</td>
+<td style="text-align: right;">0.1123</td>
+<td style="text-align: right;">0.7911</td>
+<td style="text-align: right;">0.4329</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Interpretation:</strong> The <code>arm</code> coefficient tells us the difference in log-cytokine concentration between the <code>birth_control</code> and <code>no_birth_control</code> groups, holding age and PCOS status constant. A significant p-value (&lt; 0.05) suggests the birth control arm has a meaningful association with that cytokine.</p>
+</section>
+<section id="linear-regression-immune-cells-arm-age-pcos_status" class="level2">
+<h2 class="anchored" data-anchor-id="linear-regression-immune-cells-arm-age-pcos_status">4.2 Linear regression: immune cells ~ arm + age + pcos_status</h2>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>flow_reg <span class="ot">&lt;-</span> flow_joined <span class="sc">%&gt;%</span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_longer</span>(<span class="at">cols =</span> <span class="fu">all_of</span>(cell_cols), <span class="at">names_to =</span> <span class="st">"cell_type"</span>,</span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>               <span class="at">values_to =</span> <span class="st">"count"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">drop_na</span>(count, arm, age, pcos_status) <span class="sc">%&gt;%</span></span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">count_log =</span> <span class="fu">log10</span>(count <span class="sc">+</span> <span class="dv">1</span>))</span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>models_flow <span class="ot">&lt;-</span> flow_reg <span class="sc">%&gt;%</span></span>
+<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(cell_type) <span class="sc">%&gt;%</span></span>
+<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">nest</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb15-11"><a href="#cb15-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">model =</span> <span class="fu">map</span>(data, <span class="sc">~</span> <span class="fu">lm</span>(count_log <span class="sc">~</span> arm <span class="sc">+</span> age <span class="sc">+</span> pcos_status, <span class="at">data =</span> .x)),</span>
+<span id="cb15-12"><a href="#cb15-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">tidied =</span> <span class="fu">map</span>(model, tidy)</span>
+<span id="cb15-13"><a href="#cb15-13" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span></span>
+<span id="cb15-14"><a href="#cb15-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">unnest</span>(tidied) <span class="sc">%&gt;%</span></span>
+<span id="cb15-15"><a href="#cb15-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(cell_type, term, estimate, std.error, statistic, p.value) <span class="sc">%&gt;%</span></span>
+<span id="cb15-16"><a href="#cb15-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="fu">across</span>(<span class="fu">where</span>(is.numeric), <span class="sc">~</span> <span class="fu">round</span>(., <span class="dv">4</span>)))</span>
+<span id="cb15-17"><a href="#cb15-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-18"><a href="#cb15-18" aria-hidden="true" tabindex="-1"></a><span class="fu">kable</span>(models_flow,</span>
+<span id="cb15-19"><a href="#cb15-19" aria-hidden="true" tabindex="-1"></a>      <span class="at">caption =</span> <span class="st">"Linear regression: log10(cell count) ~ arm + age + pcos_status"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<table class="caption-top table">
+<caption>Linear regression: log10(cell count) ~ arm + age + pcos_status</caption>
+<colgroup>
+<col style="width: 25%">
+<col style="width: 26%">
+<col style="width: 11%">
+<col style="width: 13%">
+<col style="width: 13%">
+<col style="width: 10%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">cell_type</th>
+<th style="text-align: left;">term</th>
+<th style="text-align: right;">estimate</th>
+<th style="text-align: right;">std.error</th>
+<th style="text-align: right;">statistic</th>
+<th style="text-align: right;">p.value</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">live_cd19_negative</td>
+<td style="text-align: left;">(Intercept)</td>
+<td style="text-align: right;">5.6975</td>
+<td style="text-align: right;">0.3117</td>
+<td style="text-align: right;">18.2795</td>
+<td style="text-align: right;">0.0000</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">live_cd19_negative</td>
+<td style="text-align: left;">armno_birth_control</td>
+<td style="text-align: right;">0.1052</td>
+<td style="text-align: right;">0.0575</td>
+<td style="text-align: right;">1.8282</td>
+<td style="text-align: right;">0.0704</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">live_cd19_negative</td>
+<td style="text-align: left;">age</td>
+<td style="text-align: right;">-0.0084</td>
+<td style="text-align: right;">0.0102</td>
+<td style="text-align: right;">-0.8211</td>
+<td style="text-align: right;">0.4135</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">live_cd19_negative</td>
+<td style="text-align: left;">pcos_statuspcos</td>
+<td style="text-align: right;">-0.0705</td>
+<td style="text-align: right;">0.0581</td>
+<td style="text-align: right;">-1.2132</td>
+<td style="text-align: right;">0.2278</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">cd45_negative</td>
+<td style="text-align: left;">(Intercept)</td>
+<td style="text-align: right;">5.4342</td>
+<td style="text-align: right;">0.4786</td>
+<td style="text-align: right;">11.3532</td>
+<td style="text-align: right;">0.0000</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">cd45_negative</td>
+<td style="text-align: left;">armno_birth_control</td>
+<td style="text-align: right;">0.1402</td>
+<td style="text-align: right;">0.0883</td>
+<td style="text-align: right;">1.5872</td>
+<td style="text-align: right;">0.1155</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">cd45_negative</td>
+<td style="text-align: left;">age</td>
+<td style="text-align: right;">-0.0073</td>
+<td style="text-align: right;">0.0157</td>
+<td style="text-align: right;">-0.4678</td>
+<td style="text-align: right;">0.6409</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">cd45_negative</td>
+<td style="text-align: left;">pcos_statuspcos</td>
+<td style="text-align: right;">-0.1464</td>
+<td style="text-align: right;">0.0893</td>
+<td style="text-align: right;">-1.6400</td>
+<td style="text-align: right;">0.1040</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">cd45_positive</td>
+<td style="text-align: left;">(Intercept)</td>
+<td style="text-align: right;">4.8483</td>
+<td style="text-align: right;">0.3175</td>
+<td style="text-align: right;">15.2689</td>
+<td style="text-align: right;">0.0000</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">cd45_positive</td>
+<td style="text-align: left;">armno_birth_control</td>
+<td style="text-align: right;">0.0368</td>
+<td style="text-align: right;">0.0586</td>
+<td style="text-align: right;">0.6279</td>
+<td style="text-align: right;">0.5314</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">cd45_positive</td>
+<td style="text-align: left;">age</td>
+<td style="text-align: right;">-0.0001</td>
+<td style="text-align: right;">0.0104</td>
+<td style="text-align: right;">-0.0088</td>
+<td style="text-align: right;">0.9930</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">cd45_positive</td>
+<td style="text-align: left;">pcos_statuspcos</td>
+<td style="text-align: right;">0.0536</td>
+<td style="text-align: right;">0.0592</td>
+<td style="text-align: right;">0.9050</td>
+<td style="text-align: right;">0.3675</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">neutrophils</td>
+<td style="text-align: left;">(Intercept)</td>
+<td style="text-align: right;">4.7182</td>
+<td style="text-align: right;">0.3537</td>
+<td style="text-align: right;">13.3381</td>
+<td style="text-align: right;">0.0000</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">neutrophils</td>
+<td style="text-align: left;">armno_birth_control</td>
+<td style="text-align: right;">0.0224</td>
+<td style="text-align: right;">0.0653</td>
+<td style="text-align: right;">0.3432</td>
+<td style="text-align: right;">0.7321</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">neutrophils</td>
+<td style="text-align: left;">age</td>
+<td style="text-align: right;">-0.0001</td>
+<td style="text-align: right;">0.0116</td>
+<td style="text-align: right;">-0.0067</td>
+<td style="text-align: right;">0.9947</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">neutrophils</td>
+<td style="text-align: left;">pcos_statuspcos</td>
+<td style="text-align: right;">0.0635</td>
+<td style="text-align: right;">0.0660</td>
+<td style="text-align: right;">0.9626</td>
+<td style="text-align: right;">0.3380</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">non_neutrophils</td>
+<td style="text-align: left;">(Intercept)</td>
+<td style="text-align: right;">4.0291</td>
+<td style="text-align: right;">0.3247</td>
+<td style="text-align: right;">12.4091</td>
+<td style="text-align: right;">0.0000</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">non_neutrophils</td>
+<td style="text-align: left;">armno_birth_control</td>
+<td style="text-align: right;">0.1061</td>
+<td style="text-align: right;">0.0599</td>
+<td style="text-align: right;">1.7706</td>
+<td style="text-align: right;">0.0796</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">non_neutrophils</td>
+<td style="text-align: left;">age</td>
+<td style="text-align: right;">0.0045</td>
+<td style="text-align: right;">0.0106</td>
+<td style="text-align: right;">0.4209</td>
+<td style="text-align: right;">0.6747</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">non_neutrophils</td>
+<td style="text-align: left;">pcos_statuspcos</td>
+<td style="text-align: right;">0.0320</td>
+<td style="text-align: right;">0.0605</td>
+<td style="text-align: right;">0.5282</td>
+<td style="text-align: right;">0.5985</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">cd3_negative</td>
+<td style="text-align: left;">(Intercept)</td>
+<td style="text-align: right;">3.5148</td>
+<td style="text-align: right;">0.4049</td>
+<td style="text-align: right;">8.6799</td>
+<td style="text-align: right;">0.0000</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">cd3_negative</td>
+<td style="text-align: left;">armno_birth_control</td>
+<td style="text-align: right;">0.1292</td>
+<td style="text-align: right;">0.0747</td>
+<td style="text-align: right;">1.7286</td>
+<td style="text-align: right;">0.0868</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">cd3_negative</td>
+<td style="text-align: left;">age</td>
+<td style="text-align: right;">0.0100</td>
+<td style="text-align: right;">0.0133</td>
+<td style="text-align: right;">0.7509</td>
+<td style="text-align: right;">0.4544</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">cd3_negative</td>
+<td style="text-align: left;">pcos_statuspcos</td>
+<td style="text-align: right;">0.0647</td>
+<td style="text-align: right;">0.0755</td>
+<td style="text-align: right;">0.8568</td>
+<td style="text-align: right;">0.3935</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">cd3_positive</td>
+<td style="text-align: left;">(Intercept)</td>
+<td style="text-align: right;">3.8169</td>
+<td style="text-align: right;">0.3779</td>
+<td style="text-align: right;">10.0989</td>
+<td style="text-align: right;">0.0000</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">cd3_positive</td>
+<td style="text-align: left;">armno_birth_control</td>
+<td style="text-align: right;">0.0702</td>
+<td style="text-align: right;">0.0697</td>
+<td style="text-align: right;">1.0058</td>
+<td style="text-align: right;">0.3169</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">cd3_positive</td>
+<td style="text-align: left;">age</td>
+<td style="text-align: right;">-0.0016</td>
+<td style="text-align: right;">0.0124</td>
+<td style="text-align: right;">-0.1264</td>
+<td style="text-align: right;">0.8997</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">cd3_positive</td>
+<td style="text-align: left;">pcos_statuspcos</td>
+<td style="text-align: right;">-0.0230</td>
+<td style="text-align: right;">0.0705</td>
+<td style="text-align: right;">-0.3267</td>
+<td style="text-align: right;">0.7445</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">cd4_t_cells</td>
+<td style="text-align: left;">(Intercept)</td>
+<td style="text-align: right;">3.4955</td>
+<td style="text-align: right;">0.4729</td>
+<td style="text-align: right;">7.3921</td>
+<td style="text-align: right;">0.0000</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">cd4_t_cells</td>
+<td style="text-align: left;">armno_birth_control</td>
+<td style="text-align: right;">0.0528</td>
+<td style="text-align: right;">0.0873</td>
+<td style="text-align: right;">0.6046</td>
+<td style="text-align: right;">0.5468</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">cd4_t_cells</td>
+<td style="text-align: left;">age</td>
+<td style="text-align: right;">-0.0012</td>
+<td style="text-align: right;">0.0155</td>
+<td style="text-align: right;">-0.0774</td>
+<td style="text-align: right;">0.9385</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">cd4_t_cells</td>
+<td style="text-align: left;">pcos_statuspcos</td>
+<td style="text-align: right;">-0.0014</td>
+<td style="text-align: right;">0.0882</td>
+<td style="text-align: right;">-0.0156</td>
+<td style="text-align: right;">0.9876</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">cd8_t_cells</td>
+<td style="text-align: left;">(Intercept)</td>
+<td style="text-align: right;">3.2853</td>
+<td style="text-align: right;">0.4112</td>
+<td style="text-align: right;">7.9886</td>
+<td style="text-align: right;">0.0000</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">cd8_t_cells</td>
+<td style="text-align: left;">armno_birth_control</td>
+<td style="text-align: right;">0.0454</td>
+<td style="text-align: right;">0.0759</td>
+<td style="text-align: right;">0.5982</td>
+<td style="text-align: right;">0.5510</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">cd8_t_cells</td>
+<td style="text-align: left;">age</td>
+<td style="text-align: right;">-0.0013</td>
+<td style="text-align: right;">0.0135</td>
+<td style="text-align: right;">-0.0947</td>
+<td style="text-align: right;">0.9248</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">cd8_t_cells</td>
+<td style="text-align: left;">pcos_statuspcos</td>
+<td style="text-align: right;">-0.0145</td>
+<td style="text-align: right;">0.0767</td>
+<td style="text-align: right;">-0.1887</td>
+<td style="text-align: right;">0.8507</td>
+</tr>
+</tbody>
+</table>
+<hr>
+</section>
+</section>
+<section id="quick-takeaways" class="level1">
+<h1>5. Quick Takeaways</h1>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Count significant arm effects in cytokine regression</span></span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>sig_cyt <span class="ot">&lt;-</span> models <span class="sc">%&gt;%</span></span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(term <span class="sc">==</span> <span class="st">"armbirth_control"</span>, p.value <span class="sc">&lt;</span> <span class="fl">0.05</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pull</span>(cytokine)</span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a>sig_flow <span class="ot">&lt;-</span> models_flow <span class="sc">%&gt;%</span></span>
+<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(term <span class="sc">==</span> <span class="st">"armbirth_control"</span>, p.value <span class="sc">&lt;</span> <span class="fl">0.05</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pull</span>(cell_type)</span>
+<span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-10"><a href="#cb16-10" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"**Cytokines significantly associated with birth control (p &lt; 0.05):**  </span><span class="sc">\n</span><span class="st">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><strong>Cytokines significantly associated with birth control (p &lt; 0.05):</strong></p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (<span class="fu">length</span>(sig_cyt) <span class="sc">&gt;</span> <span class="dv">0</span>) {</span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">cat</span>(<span class="fu">paste0</span>(<span class="st">"- "</span>, sig_cyt, <span class="at">collapse =</span> <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>))</span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>} <span class="cf">else</span> {</span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">cat</span>(<span class="st">"- None (no significant associations detected)"</span>)</span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<ul>
+<li>None (no significant associations detected)</li>
+</ul>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"</span><span class="sc">\n\n</span><span class="st">**Immune cell types significantly associated with birth control (p &lt; 0.05):**  </span><span class="sc">\n</span><span class="st">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><strong>Immune cell types significantly associated with birth control (p &lt; 0.05):</strong></p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (<span class="fu">length</span>(sig_flow) <span class="sc">&gt;</span> <span class="dv">0</span>) {</span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">cat</span>(<span class="fu">paste0</span>(<span class="st">"- "</span>, sig_flow, <span class="at">collapse =</span> <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>))</span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>} <span class="cf">else</span> {</span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">cat</span>(<span class="st">"- None (no significant associations detected)"</span>)</span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<ul>
+<li>None (no significant associations detected)</li>
+</ul>
+</section>
+
+</main>
+<!-- /main column -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>

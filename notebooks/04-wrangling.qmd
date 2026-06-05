@@ -23,24 +23,41 @@ For each pipeline below, write in plain words *how many rows* the result has and
 
 ```{r}
 table_02
+#132 rows, each row represents one visit's clinical measurements for one participant at one time point
 ```
 
 **1. After `table_02 |> group_by(pid) |> summarise(mean_ph = mean(ph))`:**
 
 *Your answer:*
+```{r}
+table_02
+table_02 |> group_by(pid) |> summarise(mean_ph = mean(ph))
+```
+
 
 **2. After `table_02 |> group_by(arm, time_point) |> summarise(mean_ph = mean(ph))`:**
 
 *Your answer:*
+```{r}
+table_02 |> group_by(arm, time_point) |> summarise(mean_ph = mean(ph))
+```
 
 **3. After `per_person |> left_join(table_01, by = "pid")`, where `per_person` is the 44-row result from prediction 1:**
 
 *Your answer:*
+```{r}
+per_person=table_02 |> group_by(pid) |> summarise(mean_ph = mean(ph))
+per_person |> left_join(table_01, by = "pid")
+```
 
 **4. After `arm_timepoint |> pivot_wider(names_from = time_point, values_from = mean_ph)`, where `arm_timepoint` is the 6-row result from prediction 2:**
 
 *Your answer:*
+```{r}
+arm_timepoint=table_02 |> group_by(arm, time_point) |> summarise(mean_ph = mean(ph))
 
+arm_timepoint|> ungroup()|> pivot_wider(names_from = time_point, values_from = mean_ph)
+```
 ## Part 2 — Build the pipeline
 
 ```{r}

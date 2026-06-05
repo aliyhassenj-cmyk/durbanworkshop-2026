@@ -1,0 +1,564 @@
+---
+title: "Diagnostic Accuracy Meta-Analysis"
+subtitle: "Sensitivity, Specificity, ROC, Publication Bias & More"
+format:
+  html:
+    toc: true
+    code-fold: true
+    embed-resources: true
+  pdf:
+    toc: true
+    keep-tex: true
+execute:
+  message: false
+  warning: false
+---
+
+## Overview
+
+This document performs a full diagnostic accuracy meta-analysis on the data
+in `data/Diagnostic_Accuracy_Table.csv` using the `mada` and `meta` packages.
+
+We'll cover:
+
+1.  Load & clean data
+2.  Sensitivity / Specificity with heterogeneity (I²)
+3.  Subgroup analysis (by diagnostic type)
+4.  Diagnostic odds ratio (DOR)
+5.  Forest plot
+6.  SROC curve
+7.  Funnel plot & publication bias test
+
+```{r setup}
+library(tidyverse)
+library(mada)
+library(meta)
+```
+
+---
+
+## 1. Load & prepare the data
+
+```{r}
+raw <- read_csv("../data/Diagnostic_Accuracy_Table.csv", show_col_types = FALSE)
+
+# Clean column names and filter out rows with missing TP/FP/FN/TN
+diag <- raw |>
+  janitor::clean_names() |>
+  filter(!is.na(tp), !is.na(fp), !is.na(tn), !is.na(fn)) |>
+  # Strip non-ASCII characters that break plotly hover text
+  mutate(across(where(is.character), ~ iconv(., from = "latin1", to = "ASCII//TRANSLIT"))) |>
+  mutate(across(where(is.character), ~ gsub("[^ -~]", "", .))) |>
+  # Add study-level proportions for mada functions
+  mutate(
+    study_label = str_glue("{study} ({country})"),
+    n = tp + fp + tn + fn,
+    prev = (tp + fn) / n       # disease prevalence in each study
+  ) |>
+  # mada::reitsma() requires exact uppercase TP, FN, FP, TN column names
+  rename(TP = tp, FN = fn, FP = fp, TN = tn) |>
+  # Remove % signs from sensitivity/specificity columns
+  mutate(
+    sensitivity = as.numeric(gsub("%", "", sensitivity)),
+    specificity = as.numeric(gsub("%", "", specificity))
+  )
+
+cat(nrow(diag), "studies loaded\n")
+
+# Quick peek
+diag |>
+  select(study_label, TP, FP, TN, FN, diagnostic_type) |>
+  head(10) |>
+  knitr::kable()
+```
+
+---
+
+## 2. Sensitivity, Specificity & Heterogeneity
+
+Calculate pooled sensitivity and specificity with a bivariate random-effects
+model (the Reitsma model in `mada`). This accounts for the negative
+correlation between sensitivity and specificity.
+
+```{r}
+# Fit the bivariate model
+fit <- mada::reitsma(diag, method = "reml")
+summary(fit)
+
+# Extract the summary table
+s <- summary(fit)
+```
+
+```{r}
+# Pooled estimates from the model
+# s$coefficients has logit row 1-2 and back-transformed row 3-4
+sens_lb <- s$coefficients["sensitivity", "95%ci.lb"]
+sens_ub <- s$coefficients["sensitivity", "95%ci.ub"]
+sens <- s$coefficients["sensitivity", "Estimate"]
+
+fpr_lb <- s$coefficients["false pos. rate", "95%ci.lb"]
+fpr_ub <- s$coefficients["false pos. rate", "95%ci.ub"]
+fpr <- s$coefficients["false pos. rate", "Estimate"]
+
+# Specificity = 1 − FPR
+spec_lb <- 1 - fpr_ub
+spec_ub <- 1 - fpr_lb
+spec <- 1 - fpr
+
+# DOR from logit coefficients
+logit_sens <- s$coefficients[1, "Estimate"]
+logit_fpr <- s$coefficients[2, "Estimate"]
+dor <- exp(logit_sens - logit_fpr)
+dor_lb <- exp(s$coefficients[1, "95%ci.lb"] - s$coefficients[2, "95%ci.ub"])
+dor_ub <- exp(s$coefficients[1, "95%ci.ub"] - s$coefficients[2, "95%ci.lb"])
+
+pooled <- data.frame(
+  Measure = c("Sensitivity", "Specificity", "DOR"),
+  Estimate = c(
+    round(sens * 100, 1),
+    round(spec * 100, 1),
+    round(dor, 2)
+  ),
+  CI_lower = c(
+    round(sens_lb * 100, 1),
+    round(spec_lb * 100, 1),
+    round(dor_lb, 2)
+  ),
+  CI_upper = c(
+    round(sens_ub * 100, 1),
+    round(spec_ub * 100, 1),
+    round(dor_ub, 2)
+  )
+)
+
+pooled |>
+  knitr::kable(caption = "Pooled estimates (bivariate random-effects model)")
+```
+
+### Heterogeneity (I²)
+
+```{r}
+# We compute I² from univariate meta-analyses on logit(sens) and logit(spec)
+# to get a feel for heterogeneity
+
+diag_for_meta <- diag |>
+  mutate(
+    logit_sens = log(TP / (TP + FN + 0.5)),
+    se_logit_sens = sqrt(1 / (TP + 0.5) + 1 / (FN + 0.5)),
+    logit_spec = log(TN / (TN + FP + 0.5)),
+    se_logit_spec = sqrt(1 / (TN + 0.5) + 1 / (FP + 0.5))
+  )
+
+meta_sens <- metagen(
+  TE = logit_sens, seTE = se_logit_sens,
+  data = diag_for_meta,
+  studlab = study_label,
+  sm = "PLOGIT",
+  fixed = FALSE, random = TRUE,
+  title = "Sensitivity"
+)
+
+meta_spec <- metagen(
+  TE = logit_spec, seTE = se_logit_spec,
+  data = diag_for_meta,
+  studlab = study_label,
+  sm = "PLOGIT",
+  fixed = FALSE, random = TRUE,
+  title = "Specificity"
+)
+
+cat("=== Heterogeneity ===\n\n")
+cat("Sensitivity: I² =", round(meta_sens$I2, 1), "%  ",
+    "τ² =", round(meta_sens$tau2, 3), "\n")
+cat("Specificity: I² =", round(meta_spec$I2, 1), "%  ",
+    "τ² =", round(meta_spec$tau2, 3), "\n")
+```
+
+---
+
+## 3. Subgroup analysis — by diagnostic type
+
+The main distinction in the data is `Immunological` (ELISA-based) vs.
+`Molecular` (PCR-based). Let's compare them.
+
+```{r}
+diag |>
+  count(diagnostic_type) |>
+  knitr::kable(caption = "Studies by diagnostic type")
+```
+
+```{r}
+# Fit bivariate model separately for each subgroup
+subgroups <- split(diag, diag$diagnostic_type)
+
+results_list <- list()
+for (nm in names(subgroups)) {
+  if (nrow(subgroups[[nm]]) >= 4) {
+    f <- mada::reitsma(subgroups[[nm]], method = "reml")
+    s <- summary(f)
+    # Back-transformed values are in rows 3-4
+    sens_val <- s$coefficients["sensitivity", "Estimate"]
+    sens_lb <- s$coefficients["sensitivity", "95%ci.lb"]
+    sens_ub <- s$coefficients["sensitivity", "95%ci.ub"]
+    fpr_val <- s$coefficients["false pos. rate", "Estimate"]
+    fpr_lb <- s$coefficients["false pos. rate", "95%ci.lb"]
+    fpr_ub <- s$coefficients["false pos. rate", "95%ci.ub"]
+    spec <- 1 - fpr_val
+    spec_lb <- 1 - fpr_ub
+    spec_ub <- 1 - fpr_lb
+    # DOR from logit coefficients
+    logit_sens <- s$coefficients[1, "Estimate"]
+    logit_fpr <- s$coefficients[2, "Estimate"]
+    dor_val <- exp(logit_sens - logit_fpr)
+    dor_lb <- exp(s$coefficients[1, "95%ci.lb"] - s$coefficients[2, "95%ci.ub"])
+    dor_ub <- exp(s$coefficients[1, "95%ci.ub"] - s$coefficients[2, "95%ci.lb"])
+    results_list[[nm]] <- data.frame(
+      Subgroup = nm,
+      n_studies = nrow(subgroups[[nm]]),
+      Sensitivity = paste0(round(sens_val * 100, 1), "% [",
+                           round(sens_lb * 100, 1), "% – ",
+                           round(sens_ub * 100, 1), "%]"),
+      Specificity = paste0(round(spec * 100, 1), "% [",
+                           round(spec_lb * 100, 1), "% – ",
+                           round(spec_ub * 100, 1), "%]"),
+      DOR = paste0(round(dor_val, 2), " [",
+                   round(dor_lb, 2), " – ",
+                   round(dor_ub, 2), "]")
+    )
+  }
+}
+
+bind_rows(results_list) |>
+  knitr::kable(caption = "Subgroup analysis by diagnostic type")
+```
+
+```{r}
+# Visual comparison on the ROC plane
+plot(x = 1, type = "n", xlim = c(0, 1), ylim = c(0, 1),
+     xlab = "1 − Specificity (FPR)", ylab = "Sensitivity (TPR)",
+     main = "Subgroup comparison on the ROC plane")
+abline(a = 0, b = 1, lty = 2, col = "grey80")
+colors <- c("Immunological" = "#2166ac", "Molecular" = "#b2182b")
+for (nm in names(subgroups)) {
+  if (nrow(subgroups[[nm]]) >= 4) {
+    f <- mada::reitsma(subgroups[[nm]], method = "reml")
+    mada::ROCellipse(f, col = colors[nm], lwd = 2)
+    # Pooled point
+    s <- summary(f)
+    sens <- plogis(s$coefficients[1, 1])
+    spec <- plogis(s$coefficients[2, 1])
+    points(1 - spec, sens, pch = 19, col = colors[nm], cex = 1.5)
+  }
+}
+legend("bottomright", legend = names(colors), fill = colors, title = "Diagnostic type")
+```
+
+---
+
+<!-- markdownlint-disable MD033 -->
+## 4. Forest plot — Sensitivity & Specificity
+
+```{r}
+#| fig-height: 12
+#| fig-width: 10
+
+# Forest plot using meta package on logit-transformed proportions
+# Back-transform to proportions for the plot
+
+forest(meta_sens,
+  leftcols = c("studlab"),
+  rightcols = c("effect", "ci", "w.random"),
+  leftlabs = c("Study"),
+  rightlabs = c("Sens.", "95% CI", "Weight"),
+  smlab = "Sensitivity (logit scale → back-transformed)",
+  pooled.totals = TRUE,
+  hetstat = TRUE,
+  overall = TRUE,
+  digits = 2
+)
+```
+
+```{r}
+#| fig-height: 12
+#| fig-width: 10
+
+forest(meta_spec,
+  leftcols = c("studlab"),
+  rightcols = c("effect", "ci", "w.random"),
+  leftlabs = c("Study"),
+  rightlabs = c("Spec.", "95% CI", "Weight"),
+  smlab = "Specificity (logit scale → back-transformed)",
+  pooled.totals = TRUE,
+  hetstat = TRUE,
+  overall = TRUE,
+  digits = 2
+)
+```
+
+---
+
+## 5. Diagnostic Odds Ratio (DOR) forest plot
+
+The DOR = (TP/FP) / (FN/TN) — a single-number summary of test performance.
+DOR > 1 means the test discriminates diseased from non-diseased.
+
+```{r}
+# Calculate DOR per study (with continuity correction for zeros)
+diag_for_dor <- diag |>
+  mutate(
+    tp_c = TP + 0.5,
+    fp_c = FP + 0.5,
+    fn_c = FN + 0.5,
+    tn_c = TN + 0.5,
+    log_dor = log((tp_c / fp_c) / (fn_c / tn_c)),
+    se_log_dor = sqrt(1 / tp_c + 1 / fp_c + 1 / fn_c + 1 / tn_c)
+  )
+
+meta_dor <- metagen(
+  TE = log_dor, seTE = se_log_dor,
+  data = diag_for_dor,
+  studlab = study_label,
+  sm = "OR",
+  fixed = FALSE, random = TRUE,
+  title = "Diagnostic Odds Ratio"
+)
+```
+
+```{r}
+#| fig-height: 12
+#| fig-width: 10
+
+forest(meta_dor,
+  leftcols = c("studlab"),
+  rightcols = c("effect", "ci", "w.random"),
+  leftlabs = c("Study"),
+  rightlabs = c("DOR", "95% CI", "Weight"),
+  smlab = "Diagnostic Odds Ratio",
+  pooled.totals = TRUE,
+  hetstat = TRUE,
+  overall = TRUE,
+  digits = 2
+)
+```
+
+```{r}
+cat("Pooled DOR =", round(exp(meta_dor$TE.random), 2),
+    "95% CI:", round(exp(meta_dor$lower.random), 2), "–",
+    round(exp(meta_dor$upper.random), 2), "\n")
+cat("Heterogeneity: I² =", round(meta_dor$I2, 1), "%\n")
+```
+
+---
+
+## 6. SROC Curve (Summary ROC)
+
+The bivariate model can be plotted as an SROC curve. This shows the
+trade-off between sensitivity and specificity across all studies.
+
+```{r}
+#| fig-height: 6
+#| fig-width: 7
+
+# Build the SROC plot manually using mada's sroc() and ROCellipse()
+
+# Start with an empty plot
+plot(NA, xlim = c(0, 1), ylim = c(0, 1),
+     xlab = "False Positive Rate (1 − Specificity)",
+     ylab = "True Positive Rate (Sensitivity)",
+     main = "SROC Curve with 95% confidence & prediction regions")
+abline(a = 0, b = 1, lty = 2, col = "grey80")
+
+# Prediction region (larger ellipse)
+mada::ROCellipse(fit, pch = NA, lty = 3, lwd = 1.5)
+
+# Confidence region (smaller ellipse)
+mada::ROCellipse(fit, pch = NA, level = 0.95,
+                 lty = 2, lwd = 2, col = "black")
+
+# SROC curve
+fpr_seq <- seq(0.01, 0.99, 0.01)
+sroc_curve <- mada::sroc(fit, fpr = fpr_seq)
+lines(sroc_curve, lwd = 2, col = "black")
+
+# Pooled estimate point
+sens_pooled <- s$coefficients["sensitivity", "Estimate"]
+fpr_pooled <- s$coefficients["false pos. rate", "Estimate"]
+points(fpr_pooled, sens_pooled, pch = 19, cex = 1.5)
+
+# Individual study points
+text(1 - diag$specificity / 100,
+     diag$sensitivity / 100,
+     labels = seq_len(nrow(diag)),
+     cex = 0.6, col = "grey40")
+
+legend("bottomright",
+  legend = c("Observed study", "SROC curve",
+             "95% confidence region", "95% prediction region"),
+  pch = c(1, NA, NA, NA),
+  lty = c(NA, 1, 2, 3),
+  col = c("black", "black", "black", "black"),
+  cex = 0.8
+)
+```
+
+---
+
+## 7. Interactive funnel plot — Diagnostic Odds Ratio
+
+We use the DOR (log scale) for the funnel plot because it's a single
+univariate measure. Asymmetry may indicate publication bias. Hover over
+each point to see the study details.
+
+```{r}
+#| fig-height: 6
+#| fig-width: 8
+#| eval: !expr knitr::is_html_output()
+
+library(plotly)
+
+# Build a data frame with the funnel plot variables
+funnel_data <- data.frame(
+  study = diag_for_dor$study_label,
+  log_dor = meta_dor$TE,
+  se = meta_dor$seTE,
+  dor = exp(meta_dor$TE),
+  diagnostic_type = diag_for_dor$diagnostic_type,
+  country = diag_for_dor$country,
+  study_on = diag_for_dor$study_on,
+  method = diag_for_dor$method
+) |>
+  mutate(
+    # Create hover text
+    hover = paste0(
+      "<b>", study, "</b><br>",
+      "DOR: ", round(dor, 1), "<br>",
+      "log(DOR): ", round(log_dor, 2), "<br>",
+      "SE: ", round(se, 3), "<br>",
+      "Type: ", diagnostic_type, "<br>",
+      "Host: ", study_on, "<br>",
+      "Country: ", country
+    )
+  )
+
+# Pseudo95% confidence limits around the pooled estimate
+pooled_log_dor <- meta_dor$TE.random
+y_lim <- max(funnel_data$se) * 1.15
+x_range <- max(abs(funnel_data$log_dor - pooled_log_dor)) * 1.3
+se_seq <- seq(0, y_lim, length.out = 50)
+
+# Funnel triangle boundaries (pseudo-95% CI)
+ci_upper <- pooled_log_dor + 1.96 * se_seq
+ci_lower <- pooled_log_dor - 1.96 * se_seq
+
+fig <- plot_ly()
+
+# Add the pseudo-95% CI lines
+fig <- fig |> add_trace(
+  x = ~ci_upper, y = ~se_seq,
+  type = "scatter", mode = "lines",
+  line = list(color = "grey60", dash = "dash"),
+  showlegend = FALSE,
+  hoverinfo = "none"
+)
+fig <- fig |> add_trace(
+  x = ~ci_lower, y = ~se_seq,
+  type = "scatter", mode = "lines",
+  line = list(color = "grey60", dash = "dash"),
+  showlegend = FALSE,
+  hoverinfo = "none"
+)
+
+# Vertical line at pooled estimate
+fig <- fig |> add_trace(
+  x = c(pooled_log_dor, pooled_log_dor), y = c(0, y_lim),
+  type = "scatter", mode = "lines",
+  line = list(color = "grey40", dash = "dot"),
+  showlegend = FALSE,
+  hoverinfo = "none"
+)
+
+# Add the study points, coloured by diagnostic type
+colors <- c("Immunological" = "#228B22", "Molecular" = "#4169E1")
+for (dt in unique(funnel_data$diagnostic_type)) {
+  sub <- funnel_data[funnel_data$diagnostic_type == dt, ]
+  fig <- fig |> add_trace(
+    x = ~log_dor, y = ~se,
+    data = sub,
+    type = "scatter", mode = "markers",
+    marker = list(
+      size = 8,
+      color = colors[dt],
+      line = list(color = "black", width = 0.5)
+    ),
+    text = ~hover,
+    hoverinfo = "text",
+    name = dt
+  )
+}
+
+fig <- fig |> layout(
+  title = "Interactive funnel plot — Diagnostic Odds Ratio",
+  xaxis = list(
+    title = "log(Diagnostic Odds Ratio)",
+    zeroline = FALSE,
+    range = c(pooled_log_dor - x_range, pooled_log_dor + x_range)
+  ),
+  yaxis = list(
+    title = "Standard Error",
+    autorange = "reversed",
+    zeroline = FALSE,
+    range = c(y_lim, 0)
+  ),
+  hovermode = "closest",
+  legend = list(title = list(text = "<b>Diagnostic type</b>"))
+)
+
+fig
+```
+
+```{r}
+#| eval: !expr knitr::is_latex_output()
+#| fig-height: 6
+#| fig-width: 6
+
+funnel(meta_dor,
+  studlab = TRUE,
+  xlab = "Diagnostic Odds Ratio (log scale)",
+  ylab = "Standard Error",
+  main = "Funnel plot — Diagnostic Odds Ratio"
+)
+```
+
+### Egger's test for funnel asymmetry
+
+```{r}
+# Egger's test: regress standard normal deviate on precision
+# A significant intercept (p < 0.10) suggests asymmetry
+egger <- metabias(meta_dor, method.bias = "linreg",
+                  k.min = 10)  # minimum studies to test
+print(egger)
+
+cat("\nEgger's test p-value:", round(egger$pval, 4))
+if (egger$pval < 0.10) {
+  cat(" → Evidence of asymmetry (possible publication bias)")
+} else {
+  cat(" → No strong evidence of asymmetry")
+}
+```
+
+---
+
+## Summary table
+
+```{r}
+pooled |>
+  knitr::kable(caption = "Final pooled estimates")
+```
+
+Key takeaways:
+
+-   **Sensitivity (pooled):** `r pooled$Estimate[1]`% (95% CI: `r pooled$CI_lower[1]`% – `r pooled$CI_upper[1]`%)
+-   **Specificity (pooled):** `r pooled$Estimate[2]`% (95% CI: `r pooled$CI_lower[2]`% – `r pooled$CI_upper[2]`%)
+-   **DOR (pooled):** `r pooled$Estimate[3]` (95% CI: `r pooled$CI_lower[3]` – `r pooled$CI_upper[3]`)
+-   Heterogeneity: sensitivity I² = `r round(meta_sens$I2, 1)`%, specificity I² = `r round(meta_spec$I2, 1)`%
+-   Egger's test: p = `r round(egger$pval, 4)`

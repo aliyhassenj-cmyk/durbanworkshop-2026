@@ -1,0 +1,419 @@
+---
+title: "Group B — Menstrual Cycle Analysis"
+subtitle: "Cytokines, Immune Cells, and Birth Control"
+format:
+  pdf:
+    toc: true
+    number-sections: true
+documentclass: article
+geometry: margin=1in
+execute:
+  echo: true
+  warning: false
+  message: false
+---
+
+```{r setup, include=FALSE}
+library(tidyverse)
+library(broom)     # for tidy model outputs
+library(knitr)     # for kable tables
+data_dir <- here::here("data")
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+```
+
+This document explores the **Group B (menstrual cycle)** dataset. We'll:
+
+1.  Load and join the data
+2.  Make summary tables with p-values
+3.  Visualise cytokine and immune cell differences by birth control and time point
+4.  Run regression models
+
+---
+
+# 1. Load and Join Data
+
+```{r load-data}
+# --- Sample IDs ---
+sample_ids <- read_csv(file.path(data_dir, "group_b_menstruation",
+                                  "00_sample_ids_period.csv"),
+                       show_col_types = FALSE)
+
+# --- Participant metadata ---
+metadata <- read_csv(file.path(data_dir, "group_b_menstruation",
+                                "01_participant_metadata_period.csv"),
+                     show_col_types = FALSE)
+
+# --- Luminex cytokines (long format) ---
+luminex <- read_csv(file.path(data_dir, "group_b_menstruation",
+                               "02_luminex_period.csv"),
+                    show_col_types = FALSE)
+
+# --- Flow cytometry ---
+flow <- read_csv(file.path(data_dir, "group_b_menstruation",
+                            "03_flow_cytometry_period.csv"),
+                 show_col_types = FALSE)
+```
+
+## Join everything together
+
+```{r join-data}
+# Join sample IDs with metadata (keep only .x versions, rename)
+samples <- sample_ids %>%
+  left_join(metadata, by = "pid", relationship = "many-to-one") %>%
+  rename(arm = arm.x) %>%
+  select(-arm.y)
+
+# Widen cytokines (one column per cytokine)
+# Clean names: replace hyphens with underscores in ALL column names
+luminex_wide <- luminex %>%
+  filter(limits == "not_censored") %>%
+  select(sample_id, cytokine, conc) %>%
+  pivot_wider(names_from = cytokine, values_from = conc)
+
+# Replace hyphens in column names with underscores
+names(luminex_wide) <- str_replace_all(names(luminex_wide), "-", "_")
+
+cyt_names <- setdiff(names(luminex_wide), "sample_id")
+
+# Join cytokine values onto samples
+data_cyt <- samples %>%
+  left_join(luminex_wide, by = "sample_id")
+
+# Join flow cytometry
+data_full <- data_cyt %>%
+  left_join(flow, by = "sample_id")
+
+glimpse(data_full)
+```
+
+---
+
+# 2. Summary Tables with P-values
+
+## 2.1 Cytokine levels by birth control arm
+
+```{r summary-by-arm}
+# Helper: run a t-test for each cytokine and return a tidy table
+cyt_arm <- data_cyt %>%
+  pivot_longer(cols = all_of(cyt_names),
+               names_to = "cytokine", values_to = "conc") %>%
+  drop_na(conc, arm)
+
+cyt_arm %>%
+  group_by(cytokine, arm) %>%
+  summarise(n = n(),
+            mean_conc = mean(conc, na.rm = TRUE),
+            sd_conc   = sd(conc, na.rm = TRUE),
+            .groups = "drop") %>%
+  pivot_wider(names_from = arm,
+              values_from = c(n, mean_conc, sd_conc),
+              names_glue = "{arm}_{.value}") %>%
+  # add p-values from t-test
+  left_join(
+    cyt_arm %>%
+      group_by(cytokine) %>%
+      summarise(p_value = t.test(conc ~ arm)$p.value, .groups = "drop"),
+    by = "cytokine"
+  ) %>%
+  mutate(across(where(is.numeric), ~ round(., 3))) %>%
+  kable(caption = "Cytokine concentrations by birth control arm (t-test)")
+```
+
+## 2.2 Cytokine levels by time point
+
+```{r summary-by-timepoint}
+cyt_time <- data_cyt %>%
+  pivot_longer(cols = all_of(cyt_names),
+               names_to = "cytokine", values_to = "conc") %>%
+  drop_na(conc, time_point)
+
+cyt_time %>%
+  group_by(cytokine, time_point) %>%
+  summarise(mean_conc = mean(conc, na.rm = TRUE),
+            sd_conc   = sd(conc, na.rm = TRUE),
+            n = n(),
+            .groups = "drop") %>%
+  mutate(across(where(is.numeric), ~ round(., 3))) %>%
+  kable(caption = "Cytokine concentrations by menstrual cycle time point")
+```
+
+```{r anova-timepoint, results = "asis"}
+# ANOVA p-values for time point effect on each cytokine
+cyt_time %>%
+  group_by(cytokine) %>%
+  nest() %>%
+  mutate(anova_p = map_dbl(data, ~ aov(conc ~ time_point, data = .x) %>%
+                             summary() %>% pluck(1, "Pr(>F)", 1))) %>%
+  select(cytokine, anova_p) %>%
+  mutate(across(where(is.numeric), ~ round(., 4))) %>%
+  kable(caption = "ANOVA p-values: does cytokine concentration vary by time point?")
+```
+
+## 2.3 PCOS status
+
+```{r summary-pcos}
+cyt_pcos <- data_cyt %>%
+  pivot_longer(cols = all_of(cyt_names),
+               names_to = "cytokine", values_to = "conc") %>%
+  drop_na(conc, pcos_status)
+
+cyt_pcos %>%
+  group_by(cytokine, pcos_status) %>%
+  summarise(mean_conc = mean(conc, na.rm = TRUE),
+            sd_conc   = sd(conc, na.rm = TRUE),
+            n = n(),
+            .groups = "drop") %>%
+  pivot_wider(names_from = pcos_status,
+              values_from = c(mean_conc, sd_conc, n),
+              names_glue = "{pcos_status}_{.value}") %>%
+  left_join(
+    cyt_pcos %>%
+      group_by(cytokine) %>%
+      summarise(p_value = t.test(conc ~ pcos_status)$p.value, .groups = "drop"),
+    by = "cytokine"
+  ) %>%
+  mutate(across(where(is.numeric), ~ round(., 3))) %>%
+  kable(caption = "Cytokine concentrations by PCOS status (t-test)")
+```
+
+## 2.4 Flow cytometry cell counts by birth control arm
+
+```{r flow-summary}
+flow_joined <- flow %>%
+  left_join(samples, by = "sample_id", relationship = "many-to-one")
+
+# Cell types to test
+cell_cols <- c("live_cd19_negative", "cd45_negative", "cd45_positive",
+               "neutrophils", "non_neutrophils", "cd3_negative",
+               "cd3_positive", "cd4_t_cells", "cd8_t_cells")
+
+flow_joined %>%
+  pivot_longer(cols = all_of(cell_cols), names_to = "cell_type",
+               values_to = "count") %>%
+  group_by(cell_type, arm) %>%
+  summarise(mean_count = mean(count, na.rm = TRUE),
+            sd_count   = sd(count, na.rm = TRUE),
+            n = n(),
+            .groups = "drop") %>%
+  pivot_wider(names_from = arm,
+              values_from = c(mean_count, sd_count, n),
+              names_glue = "{arm}_{.value}") %>%
+  left_join(
+    flow_joined %>%
+      pivot_longer(cols = all_of(cell_cols), names_to = "cell_type",
+                   values_to = "count") %>%
+      group_by(cell_type) %>%
+      summarise(p_value = t.test(count ~ arm)$p.value, .groups = "drop"),
+    by = "cell_type"
+  ) %>%
+  mutate(across(where(is.numeric), ~ round(., 3))) %>%
+  kable(caption = "Immune cell counts by birth control arm (t-test)")
+```
+
+---
+
+# 3. Graphs
+
+## 3.1 Cytokine boxplots — birth control arm
+
+```{r boxplot-cyt-arm, fig.height = 8}
+cyt_long <- data_cyt %>%
+  pivot_longer(cols = all_of(cyt_names),
+               names_to = "cytokine", values_to = "conc") %>%
+  drop_na(conc, arm)
+
+ggplot(cyt_long, aes(x = arm, y = conc, fill = arm)) +
+  geom_boxplot(alpha = 0.7) +
+  geom_jitter(width = 0.15, alpha = 0.4, size = 1.5) +
+  facet_wrap(~ cytokine, scales = "free_y", ncol = 4) +
+  scale_y_log10() +
+  labs(title = "Cytokine concentrations by birth control arm",
+       subtitle = "y-axis on log scale | jitter shows individual samples",
+       x = NULL, y = "Concentration (pg/mL)") +
+  theme_minimal() +
+  theme(legend.position = "bottom")
+```
+
+## 3.2 Cytokine boxplots — time point
+
+```{r boxplot-cyt-time, fig.height = 8}
+cyt_long_time <- data_cyt %>%
+  pivot_longer(cols = all_of(cyt_names),
+               names_to = "cytokine", values_to = "conc") %>%
+  drop_na(conc, time_point)
+
+ggplot(cyt_long_time, aes(x = time_point, y = conc, fill = time_point)) +
+  geom_boxplot(alpha = 0.7) +
+  geom_jitter(width = 0.15, alpha = 0.4, size = 1.5) +
+  facet_wrap(~ cytokine, scales = "free_y", ncol = 4) +
+  scale_y_log10() +
+  labs(title = "Cytokine concentrations across menstrual cycle time points",
+       subtitle = "y-axis on log scale",
+       x = NULL, y = "Concentration (pg/mL)") +
+  theme_minimal() +
+  theme(legend.position = "bottom")
+```
+
+## 3.3 Cytokine boxplots — PCOS status
+
+```{r boxplot-cyt-pcos, fig.height = 8}
+cyt_long_pcos <- data_cyt %>%
+  pivot_longer(cols = all_of(cyt_names),
+               names_to = "cytokine", values_to = "conc") %>%
+  drop_na(conc, pcos_status)
+
+ggplot(cyt_long_pcos, aes(x = pcos_status, y = conc, fill = pcos_status)) +
+  geom_boxplot(alpha = 0.7) +
+  geom_jitter(width = 0.15, alpha = 0.4, size = 1.5) +
+  facet_wrap(~ cytokine, scales = "free_y", ncol = 4) +
+  scale_y_log10() +
+  labs(title = "Cytokine concentrations by PCOS status",
+       subtitle = "y-axis on log scale",
+       x = NULL, y = "Concentration (pg/mL)") +
+  theme_minimal() +
+  theme(legend.position = "bottom")
+```
+
+## 3.4 Immune cell counts by birth control arm
+
+```{r boxplot-flow-arm, fig.height = 6}
+flow_long <- flow_joined %>%
+  pivot_longer(cols = all_of(cell_cols), names_to = "cell_type",
+               values_to = "count") %>%
+  drop_na(count, arm)
+
+ggplot(flow_long, aes(x = arm, y = count, fill = arm)) +
+  geom_boxplot(alpha = 0.7) +
+  geom_jitter(width = 0.15, alpha = 0.4, size = 1.5) +
+  facet_wrap(~ cell_type, scales = "free_y", ncol = 3) +
+  scale_y_log10() +
+  labs(title = "Immune cell counts by birth control arm",
+       subtitle = "y-axis on log scale",
+       x = NULL, y = "Cell count") +
+  theme_minimal() +
+  theme(legend.position = "bottom")
+```
+
+## 3.5 Correlation heatmap — cytokines and immune cells
+
+```{r corr-heatmap, fig.height = 6}
+library(corrplot)
+
+# Build a wide dataset with cytokines + key immune cells
+corr_data <- data_full %>%
+  select(all_of(cell_cols), all_of(cyt_names)) %>%
+  drop_na()
+
+cm <- cor(corr_data, use = "pairwise.complete.obs")
+
+corrplot(cm, method = "color", type = "upper",
+         tl.col = "black", tl.cex = 0.7,
+         addCoef.col = "black", number.cex = 0.5,
+         title = "Correlation: Cytokines × Immune Cells",
+         mar = c(0, 0, 2, 0))
+```
+
+## 3.6 Scatter plot — strongest cytokine–immune cell relationship
+
+```{r scatter-example, fig.height = 5}
+data_full %>%
+  drop_na(IL_6, neutrophils) %>%
+  ggplot(aes(x = IL_6, y = neutrophils, color = arm)) +
+  geom_point(size = 2.5, alpha = 0.7) +
+  geom_smooth(method = "lm", se = TRUE, alpha = 0.2) +
+  scale_x_log10() +
+  scale_y_log10() +
+  labs(title = "IL-6 vs Neutrophil count",
+       subtitle = "Coloured by birth control arm | both axes on log scale",
+       x = "IL-6 concentration (pg/mL)",
+       y = "Neutrophil count") +
+  theme_minimal()
+```
+
+---
+
+# 4. Regression Models
+
+## 4.1 Linear regression: cytokine ~ arm + age + pcos_status
+
+We model each cytokine as a function of birth control arm, age, and PCOS status.
+
+```{r reg-cytokines, results = "asis"}
+cyt_reg <- data_cyt %>%
+  pivot_longer(cols = all_of(cyt_names),
+               names_to = "cytokine", values_to = "conc") %>%
+  drop_na(conc, arm, age, pcos_status) %>%
+  mutate(conc_log = log10(conc + 1))
+
+models <- cyt_reg %>%
+  group_by(cytokine) %>%
+  nest() %>%
+  mutate(
+    model = map(data, ~ lm(conc_log ~ arm + age + pcos_status, data = .x)),
+    tidied = map(model, tidy)
+  ) %>%
+  unnest(tidied) %>%
+  select(cytokine, term, estimate, std.error, statistic, p.value) %>%
+  mutate(across(where(is.numeric), ~ round(., 4)))
+
+kable(models, caption = "Linear regression: log10(cytokine) ~ arm + age + pcos_status")
+```
+
+**Interpretation:** The `arm` coefficient tells us the difference in
+log-cytokine concentration between the `birth_control` and
+`no_birth_control` groups, holding age and PCOS status constant. A
+significant p-value (< 0.05) suggests the birth control arm has a
+meaningful association with that cytokine.
+
+## 4.2 Linear regression: immune cells ~ arm + age + pcos_status
+
+```{r reg-flow, results = "asis"}
+flow_reg <- flow_joined %>%
+  pivot_longer(cols = all_of(cell_cols), names_to = "cell_type",
+               values_to = "count") %>%
+  drop_na(count, arm, age, pcos_status) %>%
+  mutate(count_log = log10(count + 1))
+
+models_flow <- flow_reg %>%
+  group_by(cell_type) %>%
+  nest() %>%
+  mutate(
+    model = map(data, ~ lm(count_log ~ arm + age + pcos_status, data = .x)),
+    tidied = map(model, tidy)
+  ) %>%
+  unnest(tidied) %>%
+  select(cell_type, term, estimate, std.error, statistic, p.value) %>%
+  mutate(across(where(is.numeric), ~ round(., 4)))
+
+kable(models_flow,
+      caption = "Linear regression: log10(cell count) ~ arm + age + pcos_status")
+```
+
+---
+
+# 5. Quick Takeaways
+
+```{r takeaways, results = "asis"}
+# Count significant arm effects in cytokine regression
+sig_cyt <- models %>%
+  filter(term == "armbirth_control", p.value < 0.05) %>%
+  pull(cytokine)
+
+sig_flow <- models_flow %>%
+  filter(term == "armbirth_control", p.value < 0.05) %>%
+  pull(cell_type)
+
+cat("**Cytokines significantly associated with birth control (p < 0.05):**  \n")
+if (length(sig_cyt) > 0) {
+  cat(paste0("- ", sig_cyt, collapse = "\n"))
+} else {
+  cat("- None (no significant associations detected)")
+}
+
+cat("\n\n**Immune cell types significantly associated with birth control (p < 0.05):**  \n")
+if (length(sig_flow) > 0) {
+  cat(paste0("- ", sig_flow, collapse = "\n"))
+} else {
+  cat("- None (no significant associations detected)")
+}
+```

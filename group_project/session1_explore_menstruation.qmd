@@ -1,0 +1,402 @@
+---
+title: "Session 1 — Exploring the Menstruation Dataset (Group B)"
+format:
+  html:
+    toc: true
+    code-fold: true
+    embed-resources: true
+execute:
+  message: false
+  warning: false
+---
+
+## Overview
+
+This document loads and explores all four CSV files in the **menstruation
+study** dataset (`data/group_b_menstruation/`). For each file we'll show:
+
+-   What **one row** represents (the unit of observation)
+-   What **every column** means
+-   A quick glance at the data
+
+```{r setup}
+library(tidyverse)
+```
+
+---
+
+## 00 — Sample IDs (`00_sample_ids_period.csv`)
+
+```{r}
+sample_ids <- read_csv("../data/group_b_menstruation/00_sample_ids_period.csv")
+glimpse(sample_ids)
+```
+
+**What one row represents:**  
+A single biological sample taken from one participant at one menstrual-cycle
+time point.
+
+**Column guide:**
+
+| Column       | Type        | Meaning |
+|--------------|-------------|---------|
+| `pid`        | identifier  | Participant ID. Links to `01_participant_metadata_period.csv`. |
+| `time_point` | categorical | When in the menstrual cycle the sample was taken — `week_prior` (week before period), `onset` (start of bleeding), `end_bleeding` (end of period), `week_post` (week after). |
+| `arm`        | categorical | Study arm — `birth_control` (uses hormonal birth control) or `no_birth_control`. |
+| `sample_id`  | identifier  | Unique sample code (e.g. SAMP001). Links to luminex and flow cytometry tables. |
+
+```{r}
+sample_ids |>
+  count(arm, time_point) |>
+  knitr::kable()
+```
+
+---
+
+## 01 — Participant Metadata (`01_participant_metadata_period.csv`)
+
+```{r}
+metadata <- read_csv("../data/group_b_menstruation/01_participant_metadata_period.csv")
+glimpse(metadata)
+```
+
+**What one row represents:**  
+One study participant (27 participants total).
+
+**Column guide:**
+
+| Column          | Type        | Meaning |
+|-----------------|-------------|---------|
+| `pid`           | identifier  | Participant ID. Links to `00_sample_ids_period.csv`. |
+| `arm`           | categorical | Study arm — `birth_control` or `no_birth_control`. |
+| `age`           | numeric     | Age in years (range 26–41). |
+| `pcos_status`   | categorical | Whether the participant has PCOS (polycystic ovary syndrome): `no disease` or `pcos`. |
+| `period_product`| categorical | Menstrual product used: `tampon`, `pad`, or `menstrual_cup`. |
+| `sex`           | categorical | All participants are `female`. |
+
+```{r}
+metadata |>
+  count(arm, pcos_status) |>
+  knitr::kable(col.names = c("Arm", "PCOS Status", "n"))
+
+metadata |>
+  summarise(
+    n = n(),
+    mean_age = mean(age),
+    min_age = min(age),
+    max_age = max(age)
+  )
+```
+
+---
+
+## 02 — Luminex Cytokine Results (`02_luminex_period.csv`)
+
+```{r}
+luminex <- read_csv("../data/group_b_menstruation/02_luminex_period.csv")
+glimpse(luminex)
+
+n_distinct(luminex$sample_id)  # how many unique samples
+```
+
+**What one row represents:**  
+One cytokine measurement from one sample. The data is in "long" format —
+every sample has 8 rows, one per cytokine. (108 samples × 8 cytokines = 864 rows.)
+
+**Column guide:**
+
+| Column      | Type        | Meaning |
+|-------------|-------------|---------|
+| `sample_id` | identifier  | Links to `00_sample_ids_period.csv`. |
+| `cytokine`  | categorical | Immune signalling protein measured: IL-1a, IL-1b, IL-6, TNFa, MIG, IFNg, IP-10, MIP-3a. |
+| `conc`      | numeric     | Concentration of the cytokine (pg/mL). |
+| `limits`    | categorical | Reliability flag — `not_censored` (reliable), `below_detection_limit`, or `above_detect_limit` (outside the assay's measurable range). |
+
+```{r}
+# Which cytokines are measured
+luminex |>
+  count(cytokine) |>
+  knitr::kable()
+
+# Proportion of flagged results per cytokine
+luminex |>
+  mutate(flagged = limits != "not_censored") |>
+  group_by(cytokine) |>
+  summarise(pct_flagged = mean(flagged) * 100) |>
+  arrange(desc(pct_flagged)) |>
+  knitr::kable(digits = 1)
+```
+
+---
+
+## 03 — Flow Cytometry Results (`03_flow_cytometry_period.csv`)
+
+```{r}
+flow <- read_csv("../data/group_b_menstruation/03_flow_cytometry_period.csv")
+glimpse(flow)
+```
+
+**What one row represents:**  
+Cell-count data from flow cytometry for one vaginal swab sample (108 samples
+— one row per sample).
+
+**Column guide:**
+
+The column names trace a **gating hierarchy** — a process of narrowing down
+cell types step by step:
+
+```
+All live cells
+  ├── CD19-negative (non-B-cells)
+  ├── CD45-negative (non-immune cells, e.g. epithelial)
+  └── CD45-positive (immune cells / leukocytes)
+        ├── Neutrophils (innate immune cells)
+        └── Non-neutrophils (lymphocytes, macrophages, etc.)
+              ├── CD3-negative (non-T-cells)
+              └── CD3-positive (T cells)
+                    ├── CD4+ helper T cells
+                    └── CD8+ cytotoxic T cells
+```
+
+| Column              | Type    | Meaning |
+|---------------------|---------|---------|
+| `sample_id`         | identifier | Links to `00_sample_ids_period.csv`. |
+| `live_cd19_negative` | numeric | Total viable cells that are *not* CD19+ (all live cells minus B cells). |
+| `cd45_negative`     | numeric | Cells that are CD45- (non-immune cells, e.g. epithelial cells). |
+| `cd45_positive`     | numeric | Cells that are CD45+ (immune cells / leukocytes). |
+| `neutrophils`       | numeric | Neutrophils (a type of innate immune cell, counts within CD45+). |
+| `non_neutrophils`   | numeric | CD45+ cells that are *not* neutrophils (lymphocytes, macrophages, etc.). |
+| `cd3_negative`      | numeric | CD45+ cells that are CD3- (non-T-cells within the immune compartment). |
+| `cd3_positive`      | numeric | CD45+ cells that are CD3+ (T cells). |
+| `cd4_t_cells`       | numeric | CD4+ helper T cells (a subset of CD3+). |
+| `cd8_t_cells`       | numeric | CD8+ cytotoxic T cells (a subset of CD3+). |
+
+```{r}
+# Median counts for key cell types
+flow |>
+  summarise(
+    median_cd45_pos = median(cd45_positive),
+    median_neutrophils = median(neutrophils),
+    median_cd4 = median(cd4_t_cells),
+    median_cd8 = median(cd8_t_cells)
+  ) |>
+  knitr::kable()
+```
+
+---
+
+## How the tables link together
+
+All four tables are linked through **key columns**:
+
+```
+01_participant_metadata  ─── pid ───→ 00_sample_ids
+                                            │
+                                     sample_id
+                                        ├──→ 02_luminex_results  (8 rows per sample)
+                                        └──→ 03_flow_cytometry   (1 row per sample)
+```
+
+-   `01_participant_metadata` ← `pid` → `00_sample_ids`  
+    (one participant ↔ multiple samples across cycle time points)
+
+-   `00_sample_ids` ← `sample_id` → `02_luminex_period`  
+    (one sample ↔ 8 cytokine rows)
+
+-   `00_sample_ids` ← `sample_id` → `03_flow_cytometry_period`  
+    (one sample ↔ one flow-cytometry row)
+
+```{r}
+# Join all three data tables together for a complete picture
+flow_with_metadata <- flow |>
+  left_join(sample_ids, by = "sample_id") |>
+  left_join(metadata, by = "pid", suffix = c(".sample", "")) |>
+  select(sample_id, pid, time_point, arm, everything())
+
+flow_with_metadata |>
+  count(arm, time_point) |>
+  knitr::kable()
+```
+
+### Arm vs. time point — immune cell patterns
+
+```{r}
+#| fig-height: 5
+#| fig-width: 8
+
+# Reorder time points so they plot in chronological order
+flow_with_metadata <- flow_with_metadata |>
+  mutate(time_point = fct_relevel(time_point,
+    "week_prior", "onset", "end_bleeding", "week_post"))
+
+# CD45+ immune cells across the cycle, coloured by study arm
+flow_with_metadata |>
+  ggplot(aes(x = time_point, y = cd45_positive, fill = arm)) +
+  geom_boxplot(alpha = 0.6, outlier.shape = NA) +
+  geom_jitter(aes(color = arm), width = 0.15, alpha = 0.5) +
+  scale_y_log10() +
+  labs(
+    title = "Immune cell (CD45+) counts across the menstrual cycle",
+    subtitle = "By study arm — birth control vs. no birth control",
+    x = "Time point",
+    y = "CD45+ cells (log scale)",
+    fill = "Arm",
+    color = "Arm"
+  ) +
+  theme_minimal()
+```
+
+### Neutrophils — the most abundant immune cell
+
+```{r}
+#| fig-height: 5
+#| fig-width: 8
+
+flow_with_metadata |>
+  ggplot(aes(x = time_point, y = neutrophils, fill = arm)) +
+  geom_boxplot(alpha = 0.6, outlier.shape = NA) +
+  geom_jitter(aes(color = arm), width = 0.15, alpha = 0.5) +
+  scale_y_log10() +
+  labs(
+    title = "Neutrophil counts across the menstrual cycle",
+    subtitle = "By study arm — birth control vs. no birth control",
+    x = "Time point",
+    y = "Neutrophils (log scale)",
+    fill = "Arm",
+    color = "Arm"
+  ) +
+  theme_minimal()
+```
+
+### Key cytokine — IL-1a across the cycle
+
+```{r}
+#| fig-height: 5
+#| fig-width: 8
+
+# Join luminex data and pick a cytokine that's not mostly below detection
+luminex_plot <- luminex |>
+  filter(cytokine == "IL-1a", limits == "not_censored") |>
+  left_join(sample_ids, by = "sample_id") |>
+  left_join(metadata, by = "pid", suffix = c(".sample", "")) |>
+  mutate(time_point = fct_relevel(time_point,
+    "week_prior", "onset", "end_bleeding", "week_post"))
+
+luminex_plot |>
+  ggplot(aes(x = time_point, y = conc, fill = arm)) +
+  geom_boxplot(alpha = 0.6, outlier.shape = NA) +
+  geom_jitter(aes(color = arm), width = 0.15, alpha = 0.5) +
+  scale_y_log10() +
+  labs(
+    title = "IL-1a concentration across the menstrual cycle",
+    subtitle = "By study arm — birth control vs. no birth control",
+    x = "Time point",
+    y = "IL-1a (pg/mL, log scale)",
+    fill = "Arm",
+    color = "Arm"
+  ) +
+  theme_minimal()
+```
+
+### T cells — CD4+/CD8+ ratio
+
+```{r}
+#| fig-height: 5
+#| fig-width: 8
+
+flow_with_metadata |>
+  mutate(cd4_cd8_ratio = cd4_t_cells / cd8_t_cells) |>
+  ggplot(aes(x = time_point, y = cd4_cd8_ratio, fill = arm)) +
+  geom_boxplot(alpha = 0.6, outlier.shape = NA) +
+  geom_jitter(aes(color = arm), width = 0.15, alpha = 0.5) +
+  geom_hline(yintercept = 1, linetype = "dashed", color = "grey50") +
+  labs(
+    title = "CD4+/CD8+ T cell ratio across the menstrual cycle",
+    subtitle = "Dashed line = equal numbers of helper and cytotoxic T cells",
+    x = "Time point",
+    y = "CD4 / CD8 ratio",
+    fill = "Arm",
+    color = "Arm"
+  ) +
+  theme_minimal()
+```
+
+---
+
+## Correlation heatmap — immune cell counts × cytokines
+
+A "bibliometric map" visualises how variables are associated with each other.
+Here we compute pairwise correlations between all numeric variables (flow
+cytometry cell counts × cytokine concentrations) and display them as a
+coloured heatmap. Red = positive association, blue = negative, bigger dot =
+stronger correlation.
+
+```{r}
+#| fig-height: 7
+#| fig-width: 8
+
+# Build a wide dataset: one row per sample, with flow + luminex side by side
+# First pivot luminex so each cytokine is its own column
+luminex_wide <- luminex |>
+  filter(limits == "not_censored") |>
+  select(sample_id, cytokine, conc) |>
+  pivot_wider(names_from = cytokine, values_from = conc)
+
+# Join with flow cytometry
+cor_data <- flow |>
+  left_join(luminex_wide, by = "sample_id") |>
+  select(-sample_id) |>
+  # Remove any rows with missing values
+  drop_na()
+
+# Compute the correlation matrix
+cormat <- cor(cor_data, method = "spearman")
+
+# Turn it into a tidy format for ggplot
+cormat_tidy <- cormat |>
+  as_tibble(rownames = "var1") |>
+  pivot_longer(-var1, names_to = "var2", values_to = "rho")
+
+cormat_tidy |>
+  ggplot(aes(x = var1, y = var2, fill = rho, label = round(rho, 2))) +
+  geom_tile(color = "white") +
+  geom_text(size = 2.5, color = "grey30") +
+  scale_fill_gradient2(
+    low = "#2166ac", mid = "white", high = "#b2182b",
+    midpoint = 0, limits = c(-1, 1), name = "Spearman ρ"
+  ) +
+  theme_minimal(base_size = 10) +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1),
+    panel.grid = element_blank()
+  ) +
+  labs(
+    title = "Bibliometric association map",
+    subtitle = "Spearman correlations between immune cell counts and cytokines",
+    x = NULL, y = NULL
+  )
+```
+
+---
+
+## Quick notes
+
+-   **Study design:** This is a longitudinal study following 27 participants
+    across 4 time points in their menstrual cycle (`week_prior` → `onset` →
+    `end_bleeding` → `week_post`). Half use birth control, half don't.
+
+-   **PCOS:** About half the participants have PCOS, which is relevant
+    because PCOS affects hormone levels and immune function.
+
+-   **Missing / flagged data:** Luminex has `below_detection_limit` and
+    `above_detect_limit` flags — these are censored values (too low or too
+    high to read reliably). Some cytokines (like TNFa) are frequently below
+    detection.
+
+-   **Flow cytometry gating:** The column names trace a "gating hierarchy":
+    live cells → CD45+ vs CD45- → neutrophils vs non-neutrophils → CD3+ vs
+    CD3- → CD4+ vs CD8+ T cells.
+
+-   **Things we don't know yet:** Which type of birth control (pill, IUD,
+    implant)? How was PCOS diagnosed? What's the hypothesis about how birth
+    control affects immune cells during the cycle?

@@ -1,0 +1,1283 @@
+% Options for packages loaded elsewhere
+% Options for packages loaded elsewhere
+\PassOptionsToPackage{unicode}{hyperref}
+\PassOptionsToPackage{hyphens}{url}
+\PassOptionsToPackage{dvipsnames,svgnames,x11names}{xcolor}
+%
+\documentclass[
+  letterpaper,
+  DIV=11,
+  numbers=noendperiod]{scrartcl}
+\usepackage{xcolor}
+\usepackage{amsmath,amssymb}
+\setcounter{secnumdepth}{-\maxdimen} % remove section numbering
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{textcomp} % provide euro and other symbols
+\else % if luatex or xetex
+  \usepackage{unicode-math} % this also loads fontspec
+  \defaultfontfeatures{Scale=MatchLowercase}
+  \defaultfontfeatures[\rmfamily]{Ligatures=TeX,Scale=1}
+\fi
+\usepackage{lmodern}
+\ifPDFTeX\else
+  % xetex/luatex font selection
+\fi
+% Use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\IfFileExists{microtype.sty}{% use microtype if available
+  \usepackage[]{microtype}
+  \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\makeatletter
+\@ifundefined{KOMAClassName}{% if non-KOMA class
+  \IfFileExists{parskip.sty}{%
+    \usepackage{parskip}
+  }{% else
+    \setlength{\parindent}{0pt}
+    \setlength{\parskip}{6pt plus 2pt minus 1pt}}
+}{% if KOMA class
+  \KOMAoptions{parskip=half}}
+\makeatother
+% Make \paragraph and \subparagraph free-standing
+\makeatletter
+\ifx\paragraph\undefined\else
+  \let\oldparagraph\paragraph
+  \renewcommand{\paragraph}{
+    \@ifstar
+      \xxxParagraphStar
+      \xxxParagraphNoStar
+  }
+  \newcommand{\xxxParagraphStar}[1]{\oldparagraph*{#1}\mbox{}}
+  \newcommand{\xxxParagraphNoStar}[1]{\oldparagraph{#1}\mbox{}}
+\fi
+\ifx\subparagraph\undefined\else
+  \let\oldsubparagraph\subparagraph
+  \renewcommand{\subparagraph}{
+    \@ifstar
+      \xxxSubParagraphStar
+      \xxxSubParagraphNoStar
+  }
+  \newcommand{\xxxSubParagraphStar}[1]{\oldsubparagraph*{#1}\mbox{}}
+  \newcommand{\xxxSubParagraphNoStar}[1]{\oldsubparagraph{#1}\mbox{}}
+\fi
+\makeatother
+
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+% Add ',fontsize=\small' for more characters per line
+\usepackage{framed}
+\definecolor{shadecolor}{RGB}{241,243,245}
+\newenvironment{Shaded}{\begin{snugshade}}{\end{snugshade}}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{0.68,0.00,0.00}{#1}}
+\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.37,0.37,0.37}{#1}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.40,0.45,0.13}{#1}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.68,0.00,0.00}{#1}}
+\newcommand{\BuiltInTok}[1]{\textcolor[rgb]{0.00,0.23,0.31}{#1}}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.13,0.47,0.30}{#1}}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.37,0.37,0.37}{#1}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.37,0.37,0.37}{\textit{#1}}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{#1}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.00,0.23,0.31}{\textbf{#1}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.68,0.00,0.00}{#1}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.68,0.00,0.00}{#1}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.37,0.37,0.37}{\textit{#1}}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{0.68,0.00,0.00}{#1}}
+\newcommand{\ExtensionTok}[1]{\textcolor[rgb]{0.00,0.23,0.31}{#1}}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.68,0.00,0.00}{#1}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.28,0.35,0.67}{#1}}
+\newcommand{\ImportTok}[1]{\textcolor[rgb]{0.00,0.46,0.62}{#1}}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.37,0.37,0.37}{#1}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.00,0.23,0.31}{\textbf{#1}}}
+\newcommand{\NormalTok}[1]{\textcolor[rgb]{0.00,0.23,0.31}{#1}}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.37,0.37,0.37}{#1}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.00,0.23,0.31}{#1}}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.68,0.00,0.00}{#1}}
+\newcommand{\RegionMarkerTok}[1]{\textcolor[rgb]{0.00,0.23,0.31}{#1}}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.37,0.37,0.37}{#1}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.13,0.47,0.30}{#1}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.13,0.47,0.30}{#1}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.07,0.07,0.07}{#1}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.13,0.47,0.30}{#1}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.37,0.37,0.37}{\textit{#1}}}
+
+\usepackage{longtable,booktabs,array}
+\newcounter{none} % for unnumbered tables
+\usepackage{calc} % for calculating minipage widths
+% Correct order of tables after \paragraph or \subparagraph
+\usepackage{etoolbox}
+\makeatletter
+\patchcmd\longtable{\par}{\if@noskipsec\mbox{}\fi\par}{}{}
+\makeatother
+% Allow footnotes in longtable head/foot
+\IfFileExists{footnotehyper.sty}{\usepackage{footnotehyper}}{\usepackage{footnote}}
+\makesavenoteenv{longtable}
+\usepackage{graphicx}
+\makeatletter
+\newsavebox\pandoc@box
+\newcommand*\pandocbounded[1]{% scales image to fit in text height/width
+  \sbox\pandoc@box{#1}%
+  \Gscale@div\@tempa{\textheight}{\dimexpr\ht\pandoc@box+\dp\pandoc@box\relax}%
+  \Gscale@div\@tempb{\linewidth}{\wd\pandoc@box}%
+  \ifdim\@tempb\p@<\@tempa\p@\let\@tempa\@tempb\fi% select the smaller of both
+  \ifdim\@tempa\p@<\p@\scalebox{\@tempa}{\usebox\pandoc@box}%
+  \else\usebox{\pandoc@box}%
+  \fi%
+}
+% Set default figure placement to htbp
+\def\fps@figure{htbp}
+\makeatother
+
+
+
+
+
+\setlength{\emergencystretch}{3em} % prevent overfull lines
+
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+
+
+
+ 
+
+
+\KOMAoption{captions}{tableheading}
+\makeatletter
+\@ifpackageloaded{caption}{}{\usepackage{caption}}
+\AtBeginDocument{%
+\ifdefined\contentsname
+  \renewcommand*\contentsname{Table of contents}
+\else
+  \newcommand\contentsname{Table of contents}
+\fi
+\ifdefined\listfigurename
+  \renewcommand*\listfigurename{List of Figures}
+\else
+  \newcommand\listfigurename{List of Figures}
+\fi
+\ifdefined\listtablename
+  \renewcommand*\listtablename{List of Tables}
+\else
+  \newcommand\listtablename{List of Tables}
+\fi
+\ifdefined\figurename
+  \renewcommand*\figurename{Figure}
+\else
+  \newcommand\figurename{Figure}
+\fi
+\ifdefined\tablename
+  \renewcommand*\tablename{Table}
+\else
+  \newcommand\tablename{Table}
+\fi
+}
+\@ifpackageloaded{float}{}{\usepackage{float}}
+\floatstyle{ruled}
+\@ifundefined{c@chapter}{\newfloat{codelisting}{h}{lop}}{\newfloat{codelisting}{h}{lop}[chapter]}
+\floatname{codelisting}{Listing}
+\newcommand*\listoflistings{\listof{codelisting}{List of Listings}}
+\makeatother
+\makeatletter
+\makeatother
+\makeatletter
+\@ifpackageloaded{caption}{}{\usepackage{caption}}
+\@ifpackageloaded{subcaption}{}{\usepackage{subcaption}}
+\makeatother
+\usepackage{bookmark}
+\IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
+\urlstyle{same}
+\hypersetup{
+  pdftitle={Diagnostic Accuracy Meta-Analysis},
+  colorlinks=true,
+  linkcolor={blue},
+  filecolor={Maroon},
+  citecolor={Blue},
+  urlcolor={Blue},
+  pdfcreator={LaTeX via pandoc}}
+
+
+\title{Diagnostic Accuracy Meta-Analysis}
+\usepackage{etoolbox}
+\makeatletter
+\providecommand{\subtitle}[1]{% add subtitle to \maketitle
+  \apptocmd{\@title}{\par {\large #1 \par}}{}{}
+}
+\makeatother
+\subtitle{Sensitivity, Specificity, ROC, Publication Bias \& More}
+\author{}
+\date{}
+\begin{document}
+\maketitle
+
+\renewcommand*\contentsname{Table of contents}
+{
+\setcounter{tocdepth}{3}
+\tableofcontents
+}
+
+\subsection{Overview}\label{overview}
+
+This document performs a full diagnostic accuracy meta-analysis on the
+data in \texttt{data/Diagnostic\_Accuracy\_Table.csv} using the
+\texttt{mada} and \texttt{meta} packages.
+
+We'll cover:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  Load \& clean data
+\item
+  Sensitivity / Specificity with heterogeneity (I²)
+\item
+  Subgroup analysis (by diagnostic type)
+\item
+  Diagnostic odds ratio (DOR)
+\item
+  Forest plot
+\item
+  SROC curve
+\item
+  Funnel plot \& publication bias test
+\end{enumerate}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{library}\NormalTok{(tidyverse)}
+\FunctionTok{library}\NormalTok{(mada)}
+\FunctionTok{library}\NormalTok{(meta)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{1. Load \& prepare the data}\label{load-prepare-the-data}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{raw }\OtherTok{\textless{}{-}} \FunctionTok{read\_csv}\NormalTok{(}\StringTok{"../data/Diagnostic\_Accuracy\_Table.csv"}\NormalTok{, }\AttributeTok{show\_col\_types =} \ConstantTok{FALSE}\NormalTok{)}
+
+\CommentTok{\# Clean column names and filter out rows with missing TP/FP/FN/TN}
+\NormalTok{diag }\OtherTok{\textless{}{-}}\NormalTok{ raw }\SpecialCharTok{|\textgreater{}}
+\NormalTok{  janitor}\SpecialCharTok{::}\FunctionTok{clean\_names}\NormalTok{() }\SpecialCharTok{|\textgreater{}}
+  \FunctionTok{filter}\NormalTok{(}\SpecialCharTok{!}\FunctionTok{is.na}\NormalTok{(tp), }\SpecialCharTok{!}\FunctionTok{is.na}\NormalTok{(fp), }\SpecialCharTok{!}\FunctionTok{is.na}\NormalTok{(tn), }\SpecialCharTok{!}\FunctionTok{is.na}\NormalTok{(fn)) }\SpecialCharTok{|\textgreater{}}
+  \CommentTok{\# Strip non{-}ASCII characters that break plotly hover text}
+  \FunctionTok{mutate}\NormalTok{(}\FunctionTok{across}\NormalTok{(}\FunctionTok{where}\NormalTok{(is.character), }\SpecialCharTok{\textasciitilde{}} \FunctionTok{iconv}\NormalTok{(., }\AttributeTok{from =} \StringTok{"latin1"}\NormalTok{, }\AttributeTok{to =} \StringTok{"ASCII//TRANSLIT"}\NormalTok{))) }\SpecialCharTok{|\textgreater{}}
+  \FunctionTok{mutate}\NormalTok{(}\FunctionTok{across}\NormalTok{(}\FunctionTok{where}\NormalTok{(is.character), }\SpecialCharTok{\textasciitilde{}} \FunctionTok{gsub}\NormalTok{(}\StringTok{"[\^{} {-}\textasciitilde{}]"}\NormalTok{, }\StringTok{""}\NormalTok{, .))) }\SpecialCharTok{|\textgreater{}}
+  \CommentTok{\# Add study{-}level proportions for mada functions}
+  \FunctionTok{mutate}\NormalTok{(}
+    \AttributeTok{study\_label =} \FunctionTok{str\_glue}\NormalTok{(}\StringTok{"\{study\} (\{country\})"}\NormalTok{),}
+    \AttributeTok{n =}\NormalTok{ tp }\SpecialCharTok{+}\NormalTok{ fp }\SpecialCharTok{+}\NormalTok{ tn }\SpecialCharTok{+}\NormalTok{ fn,}
+    \AttributeTok{prev =}\NormalTok{ (tp }\SpecialCharTok{+}\NormalTok{ fn) }\SpecialCharTok{/}\NormalTok{ n       }\CommentTok{\# disease prevalence in each study}
+\NormalTok{  ) }\SpecialCharTok{|\textgreater{}}
+  \CommentTok{\# mada::reitsma() requires exact uppercase TP, FN, FP, TN column names}
+  \FunctionTok{rename}\NormalTok{(}\AttributeTok{TP =}\NormalTok{ tp, }\AttributeTok{FN =}\NormalTok{ fn, }\AttributeTok{FP =}\NormalTok{ fp, }\AttributeTok{TN =}\NormalTok{ tn) }\SpecialCharTok{|\textgreater{}}
+  \CommentTok{\# Remove \% signs from sensitivity/specificity columns}
+  \FunctionTok{mutate}\NormalTok{(}
+    \AttributeTok{sensitivity =} \FunctionTok{as.numeric}\NormalTok{(}\FunctionTok{gsub}\NormalTok{(}\StringTok{"\%"}\NormalTok{, }\StringTok{""}\NormalTok{, sensitivity)),}
+    \AttributeTok{specificity =} \FunctionTok{as.numeric}\NormalTok{(}\FunctionTok{gsub}\NormalTok{(}\StringTok{"\%"}\NormalTok{, }\StringTok{""}\NormalTok{, specificity))}
+\NormalTok{  )}
+
+\FunctionTok{cat}\NormalTok{(}\FunctionTok{nrow}\NormalTok{(diag), }\StringTok{"studies loaded}\SpecialCharTok{\textbackslash{}n}\StringTok{"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+53 studies loaded
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Quick peek}
+\NormalTok{diag }\SpecialCharTok{|\textgreater{}}
+  \FunctionTok{select}\NormalTok{(study\_label, TP, FP, TN, FN, diagnostic\_type) }\SpecialCharTok{|\textgreater{}}
+  \FunctionTok{head}\NormalTok{(}\DecValTok{10}\NormalTok{) }\SpecialCharTok{|\textgreater{}}
+\NormalTok{  knitr}\SpecialCharTok{::}\FunctionTok{kable}\NormalTok{()}
+\end{Highlighting}
+\end{Shaded}
+
+{\def\LTcaptype{none} % do not increment counter
+\begin{longtable}[]{@{}lrrrrl@{}}
+\toprule\noalign{}
+study\_label & TP & FP & TN & FN & diagnostic\_type \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+RezBravo et al., 2016 (Spain) & 14 & 9 & 76 & 29 & Immunological \\
+RezBravo et al., 2016 (Spain) & 25 & 16 & 58 & 18 & Immunological \\
+RezBravo et al., 2016 (Spain) & 40 & 5 & 72 & 3 & Immunological \\
+Zheng et al., 2016 (China) & 28 & 4 & 26 & 5 & Immunological \\
+Shen et al., 2017 (China) & 40 & 3 & 48 & 2 & Immunological \\
+Shen et al., 2021 (China) & 43 & 5 & 49 & 3 & Immunological \\
+Shen et al., 2021 (China) & 43 & 3 & 51 & 3 & Immunological \\
+Shen et al., 2021 (China) & 46 & 1 & 53 & 0 & Immunological \\
+Casais et al., 2013 (Spain) & 34 & 8 & 42 & 19 & Immunological \\
+Casais et al., 2013 (Spain) & 24 & 6 & 34 & 36 & Immunological \\
+\end{longtable}
+}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{2. Sensitivity, Specificity \&
+Heterogeneity}\label{sensitivity-specificity-heterogeneity}
+
+Calculate pooled sensitivity and specificity with a bivariate
+random-effects model (the Reitsma model in \texttt{mada}). This accounts
+for the negative correlation between sensitivity and specificity.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Fit the bivariate model}
+\NormalTok{fit }\OtherTok{\textless{}{-}}\NormalTok{ mada}\SpecialCharTok{::}\FunctionTok{reitsma}\NormalTok{(diag, }\AttributeTok{method =} \StringTok{"reml"}\NormalTok{)}
+\FunctionTok{summary}\NormalTok{(fit)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+Call:  reitsma.default(data = diag, method = "reml")
+
+Bivariate diagnostic random-effects meta-analysis
+Estimation method: REML
+
+Fixed-effects coefficients
+                  Estimate Std. Error       z Pr(>|z|) 95%ci.lb 95%ci.ub    
+tsens.(Intercept)    1.683      0.186   9.052    0.000    1.319    2.047 ***
+tfpr.(Intercept)    -2.332      0.130 -17.883    0.000   -2.587   -2.076 ***
+sensitivity          0.843          -       -        -    0.789    0.886    
+false pos. rate      0.089          -       -        -    0.070    0.111    
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1 
+
+Variance components: between-studies Std. Dev and correlation matrix
+      Std. Dev  tsens  tfpr
+tsens    1.224  1.000     .
+tfpr     0.750 -0.274 1.000
+
+  logLik      AIC      BIC 
+ 114.610 -219.220 -205.903 
+
+AUC:  0.944
+Partial AUC (restricted to observed FPRs and normalized):  0.852
+
+I2 estimates 
+Zhou and Dendukuri approach:  9.2 % 
+Holling sample size unadjusted approaches:  71.4 - 89.3 % 
+Holling sample size adjusted approaches:  4.3 - 11.7 %
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Extract the summary table}
+\NormalTok{s }\OtherTok{\textless{}{-}} \FunctionTok{summary}\NormalTok{(fit)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Pooled estimates from the model}
+\CommentTok{\# s$coefficients has logit row 1{-}2 and back{-}transformed row 3{-}4}
+\NormalTok{sens\_lb }\OtherTok{\textless{}{-}}\NormalTok{ s}\SpecialCharTok{$}\NormalTok{coefficients[}\StringTok{"sensitivity"}\NormalTok{, }\StringTok{"95\%ci.lb"}\NormalTok{]}
+\NormalTok{sens\_ub }\OtherTok{\textless{}{-}}\NormalTok{ s}\SpecialCharTok{$}\NormalTok{coefficients[}\StringTok{"sensitivity"}\NormalTok{, }\StringTok{"95\%ci.ub"}\NormalTok{]}
+\NormalTok{sens }\OtherTok{\textless{}{-}}\NormalTok{ s}\SpecialCharTok{$}\NormalTok{coefficients[}\StringTok{"sensitivity"}\NormalTok{, }\StringTok{"Estimate"}\NormalTok{]}
+
+\NormalTok{fpr\_lb }\OtherTok{\textless{}{-}}\NormalTok{ s}\SpecialCharTok{$}\NormalTok{coefficients[}\StringTok{"false pos. rate"}\NormalTok{, }\StringTok{"95\%ci.lb"}\NormalTok{]}
+\NormalTok{fpr\_ub }\OtherTok{\textless{}{-}}\NormalTok{ s}\SpecialCharTok{$}\NormalTok{coefficients[}\StringTok{"false pos. rate"}\NormalTok{, }\StringTok{"95\%ci.ub"}\NormalTok{]}
+\NormalTok{fpr }\OtherTok{\textless{}{-}}\NormalTok{ s}\SpecialCharTok{$}\NormalTok{coefficients[}\StringTok{"false pos. rate"}\NormalTok{, }\StringTok{"Estimate"}\NormalTok{]}
+
+\CommentTok{\# Specificity = 1 − FPR}
+\NormalTok{spec\_lb }\OtherTok{\textless{}{-}} \DecValTok{1} \SpecialCharTok{{-}}\NormalTok{ fpr\_ub}
+\NormalTok{spec\_ub }\OtherTok{\textless{}{-}} \DecValTok{1} \SpecialCharTok{{-}}\NormalTok{ fpr\_lb}
+\NormalTok{spec }\OtherTok{\textless{}{-}} \DecValTok{1} \SpecialCharTok{{-}}\NormalTok{ fpr}
+
+\CommentTok{\# DOR from logit coefficients}
+\NormalTok{logit\_sens }\OtherTok{\textless{}{-}}\NormalTok{ s}\SpecialCharTok{$}\NormalTok{coefficients[}\DecValTok{1}\NormalTok{, }\StringTok{"Estimate"}\NormalTok{]}
+\NormalTok{logit\_fpr }\OtherTok{\textless{}{-}}\NormalTok{ s}\SpecialCharTok{$}\NormalTok{coefficients[}\DecValTok{2}\NormalTok{, }\StringTok{"Estimate"}\NormalTok{]}
+\NormalTok{dor }\OtherTok{\textless{}{-}} \FunctionTok{exp}\NormalTok{(logit\_sens }\SpecialCharTok{{-}}\NormalTok{ logit\_fpr)}
+\NormalTok{dor\_lb }\OtherTok{\textless{}{-}} \FunctionTok{exp}\NormalTok{(s}\SpecialCharTok{$}\NormalTok{coefficients[}\DecValTok{1}\NormalTok{, }\StringTok{"95\%ci.lb"}\NormalTok{] }\SpecialCharTok{{-}}\NormalTok{ s}\SpecialCharTok{$}\NormalTok{coefficients[}\DecValTok{2}\NormalTok{, }\StringTok{"95\%ci.ub"}\NormalTok{])}
+\NormalTok{dor\_ub }\OtherTok{\textless{}{-}} \FunctionTok{exp}\NormalTok{(s}\SpecialCharTok{$}\NormalTok{coefficients[}\DecValTok{1}\NormalTok{, }\StringTok{"95\%ci.ub"}\NormalTok{] }\SpecialCharTok{{-}}\NormalTok{ s}\SpecialCharTok{$}\NormalTok{coefficients[}\DecValTok{2}\NormalTok{, }\StringTok{"95\%ci.lb"}\NormalTok{])}
+
+\NormalTok{pooled }\OtherTok{\textless{}{-}} \FunctionTok{data.frame}\NormalTok{(}
+  \AttributeTok{Measure =} \FunctionTok{c}\NormalTok{(}\StringTok{"Sensitivity"}\NormalTok{, }\StringTok{"Specificity"}\NormalTok{, }\StringTok{"DOR"}\NormalTok{),}
+  \AttributeTok{Estimate =} \FunctionTok{c}\NormalTok{(}
+    \FunctionTok{round}\NormalTok{(sens }\SpecialCharTok{*} \DecValTok{100}\NormalTok{, }\DecValTok{1}\NormalTok{),}
+    \FunctionTok{round}\NormalTok{(spec }\SpecialCharTok{*} \DecValTok{100}\NormalTok{, }\DecValTok{1}\NormalTok{),}
+    \FunctionTok{round}\NormalTok{(dor, }\DecValTok{2}\NormalTok{)}
+\NormalTok{  ),}
+  \AttributeTok{CI\_lower =} \FunctionTok{c}\NormalTok{(}
+    \FunctionTok{round}\NormalTok{(sens\_lb }\SpecialCharTok{*} \DecValTok{100}\NormalTok{, }\DecValTok{1}\NormalTok{),}
+    \FunctionTok{round}\NormalTok{(spec\_lb }\SpecialCharTok{*} \DecValTok{100}\NormalTok{, }\DecValTok{1}\NormalTok{),}
+    \FunctionTok{round}\NormalTok{(dor\_lb, }\DecValTok{2}\NormalTok{)}
+\NormalTok{  ),}
+  \AttributeTok{CI\_upper =} \FunctionTok{c}\NormalTok{(}
+    \FunctionTok{round}\NormalTok{(sens\_ub }\SpecialCharTok{*} \DecValTok{100}\NormalTok{, }\DecValTok{1}\NormalTok{),}
+    \FunctionTok{round}\NormalTok{(spec\_ub }\SpecialCharTok{*} \DecValTok{100}\NormalTok{, }\DecValTok{1}\NormalTok{),}
+    \FunctionTok{round}\NormalTok{(dor\_ub, }\DecValTok{2}\NormalTok{)}
+\NormalTok{  )}
+\NormalTok{)}
+
+\NormalTok{pooled }\SpecialCharTok{|\textgreater{}}
+\NormalTok{  knitr}\SpecialCharTok{::}\FunctionTok{kable}\NormalTok{(}\AttributeTok{caption =} \StringTok{"Pooled estimates (bivariate random{-}effects model)"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{longtable}[]{@{}lrrr@{}}
+\caption{Pooled estimates (bivariate random-effects
+model)}\tabularnewline
+\toprule\noalign{}
+Measure & Estimate & CI\_lower & CI\_upper \\
+\midrule\noalign{}
+\endfirsthead
+\toprule\noalign{}
+Measure & Estimate & CI\_lower & CI\_upper \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+Sensitivity & 84.3 & 78.9 & 88.60 \\
+Specificity & 91.1 & 88.9 & 93.00 \\
+DOR & 55.4 & 29.8 & 102.98 \\
+\end{longtable}
+
+\subsubsection{Heterogeneity (I²)}\label{heterogeneity-iuxb2}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# We compute I² from univariate meta{-}analyses on logit(sens) and logit(spec)}
+\CommentTok{\# to get a feel for heterogeneity}
+
+\NormalTok{diag\_for\_meta }\OtherTok{\textless{}{-}}\NormalTok{ diag }\SpecialCharTok{|\textgreater{}}
+  \FunctionTok{mutate}\NormalTok{(}
+    \AttributeTok{logit\_sens =} \FunctionTok{log}\NormalTok{(TP }\SpecialCharTok{/}\NormalTok{ (TP }\SpecialCharTok{+}\NormalTok{ FN }\SpecialCharTok{+} \FloatTok{0.5}\NormalTok{)),}
+    \AttributeTok{se\_logit\_sens =} \FunctionTok{sqrt}\NormalTok{(}\DecValTok{1} \SpecialCharTok{/}\NormalTok{ (TP }\SpecialCharTok{+} \FloatTok{0.5}\NormalTok{) }\SpecialCharTok{+} \DecValTok{1} \SpecialCharTok{/}\NormalTok{ (FN }\SpecialCharTok{+} \FloatTok{0.5}\NormalTok{)),}
+    \AttributeTok{logit\_spec =} \FunctionTok{log}\NormalTok{(TN }\SpecialCharTok{/}\NormalTok{ (TN }\SpecialCharTok{+}\NormalTok{ FP }\SpecialCharTok{+} \FloatTok{0.5}\NormalTok{)),}
+    \AttributeTok{se\_logit\_spec =} \FunctionTok{sqrt}\NormalTok{(}\DecValTok{1} \SpecialCharTok{/}\NormalTok{ (TN }\SpecialCharTok{+} \FloatTok{0.5}\NormalTok{) }\SpecialCharTok{+} \DecValTok{1} \SpecialCharTok{/}\NormalTok{ (FP }\SpecialCharTok{+} \FloatTok{0.5}\NormalTok{))}
+\NormalTok{  )}
+
+\NormalTok{meta\_sens }\OtherTok{\textless{}{-}} \FunctionTok{metagen}\NormalTok{(}
+  \AttributeTok{TE =}\NormalTok{ logit\_sens, }\AttributeTok{seTE =}\NormalTok{ se\_logit\_sens,}
+  \AttributeTok{data =}\NormalTok{ diag\_for\_meta,}
+  \AttributeTok{studlab =}\NormalTok{ study\_label,}
+  \AttributeTok{sm =} \StringTok{"PLOGIT"}\NormalTok{,}
+  \AttributeTok{fixed =} \ConstantTok{FALSE}\NormalTok{, }\AttributeTok{random =} \ConstantTok{TRUE}\NormalTok{,}
+  \AttributeTok{title =} \StringTok{"Sensitivity"}
+\NormalTok{)}
+
+\NormalTok{meta\_spec }\OtherTok{\textless{}{-}} \FunctionTok{metagen}\NormalTok{(}
+  \AttributeTok{TE =}\NormalTok{ logit\_spec, }\AttributeTok{seTE =}\NormalTok{ se\_logit\_spec,}
+  \AttributeTok{data =}\NormalTok{ diag\_for\_meta,}
+  \AttributeTok{studlab =}\NormalTok{ study\_label,}
+  \AttributeTok{sm =} \StringTok{"PLOGIT"}\NormalTok{,}
+  \AttributeTok{fixed =} \ConstantTok{FALSE}\NormalTok{, }\AttributeTok{random =} \ConstantTok{TRUE}\NormalTok{,}
+  \AttributeTok{title =} \StringTok{"Specificity"}
+\NormalTok{)}
+
+\FunctionTok{cat}\NormalTok{(}\StringTok{"=== Heterogeneity ===}\SpecialCharTok{\textbackslash{}n\textbackslash{}n}\StringTok{"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+=== Heterogeneity ===
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{cat}\NormalTok{(}\StringTok{"Sensitivity: I² ="}\NormalTok{, }\FunctionTok{round}\NormalTok{(meta\_sens}\SpecialCharTok{$}\NormalTok{I2, }\DecValTok{1}\NormalTok{), }\StringTok{"\%  "}\NormalTok{,}
+    \StringTok{"τ² ="}\NormalTok{, }\FunctionTok{round}\NormalTok{(meta\_sens}\SpecialCharTok{$}\NormalTok{tau2, }\DecValTok{3}\NormalTok{), }\StringTok{"}\SpecialCharTok{\textbackslash{}n}\StringTok{"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+Sensitivity: I² = 0.2 %   τ² = 0.06 
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{cat}\NormalTok{(}\StringTok{"Specificity: I² ="}\NormalTok{, }\FunctionTok{round}\NormalTok{(meta\_spec}\SpecialCharTok{$}\NormalTok{I2, }\DecValTok{1}\NormalTok{), }\StringTok{"\%  "}\NormalTok{,}
+    \StringTok{"τ² ="}\NormalTok{, }\FunctionTok{round}\NormalTok{(meta\_spec}\SpecialCharTok{$}\NormalTok{tau2, }\DecValTok{3}\NormalTok{), }\StringTok{"}\SpecialCharTok{\textbackslash{}n}\StringTok{"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+Specificity: I² = 0 %   τ² = 0 
+\end{verbatim}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{3. Subgroup analysis --- by diagnostic
+type}\label{subgroup-analysis-by-diagnostic-type}
+
+The main distinction in the data is \texttt{Immunological} (ELISA-based)
+vs. \texttt{Molecular} (PCR-based). Let's compare them.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{diag }\SpecialCharTok{|\textgreater{}}
+  \FunctionTok{count}\NormalTok{(diagnostic\_type) }\SpecialCharTok{|\textgreater{}}
+\NormalTok{  knitr}\SpecialCharTok{::}\FunctionTok{kable}\NormalTok{(}\AttributeTok{caption =} \StringTok{"Studies by diagnostic type"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{longtable}[]{@{}lr@{}}
+\caption{Studies by diagnostic type}\tabularnewline
+\toprule\noalign{}
+diagnostic\_type & n \\
+\midrule\noalign{}
+\endfirsthead
+\toprule\noalign{}
+diagnostic\_type & n \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+Immunological & 42 \\
+Molecular & 11 \\
+\end{longtable}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Fit bivariate model separately for each subgroup}
+\NormalTok{subgroups }\OtherTok{\textless{}{-}} \FunctionTok{split}\NormalTok{(diag, diag}\SpecialCharTok{$}\NormalTok{diagnostic\_type)}
+
+\NormalTok{results\_list }\OtherTok{\textless{}{-}} \FunctionTok{list}\NormalTok{()}
+\ControlFlowTok{for}\NormalTok{ (nm }\ControlFlowTok{in} \FunctionTok{names}\NormalTok{(subgroups)) \{}
+  \ControlFlowTok{if}\NormalTok{ (}\FunctionTok{nrow}\NormalTok{(subgroups[[nm]]) }\SpecialCharTok{\textgreater{}=} \DecValTok{4}\NormalTok{) \{}
+\NormalTok{    f }\OtherTok{\textless{}{-}}\NormalTok{ mada}\SpecialCharTok{::}\FunctionTok{reitsma}\NormalTok{(subgroups[[nm]], }\AttributeTok{method =} \StringTok{"reml"}\NormalTok{)}
+\NormalTok{    s }\OtherTok{\textless{}{-}} \FunctionTok{summary}\NormalTok{(f)}
+    \CommentTok{\# Back{-}transformed values are in rows 3{-}4}
+\NormalTok{    sens\_val }\OtherTok{\textless{}{-}}\NormalTok{ s}\SpecialCharTok{$}\NormalTok{coefficients[}\StringTok{"sensitivity"}\NormalTok{, }\StringTok{"Estimate"}\NormalTok{]}
+\NormalTok{    sens\_lb }\OtherTok{\textless{}{-}}\NormalTok{ s}\SpecialCharTok{$}\NormalTok{coefficients[}\StringTok{"sensitivity"}\NormalTok{, }\StringTok{"95\%ci.lb"}\NormalTok{]}
+\NormalTok{    sens\_ub }\OtherTok{\textless{}{-}}\NormalTok{ s}\SpecialCharTok{$}\NormalTok{coefficients[}\StringTok{"sensitivity"}\NormalTok{, }\StringTok{"95\%ci.ub"}\NormalTok{]}
+\NormalTok{    fpr\_val }\OtherTok{\textless{}{-}}\NormalTok{ s}\SpecialCharTok{$}\NormalTok{coefficients[}\StringTok{"false pos. rate"}\NormalTok{, }\StringTok{"Estimate"}\NormalTok{]}
+\NormalTok{    fpr\_lb }\OtherTok{\textless{}{-}}\NormalTok{ s}\SpecialCharTok{$}\NormalTok{coefficients[}\StringTok{"false pos. rate"}\NormalTok{, }\StringTok{"95\%ci.lb"}\NormalTok{]}
+\NormalTok{    fpr\_ub }\OtherTok{\textless{}{-}}\NormalTok{ s}\SpecialCharTok{$}\NormalTok{coefficients[}\StringTok{"false pos. rate"}\NormalTok{, }\StringTok{"95\%ci.ub"}\NormalTok{]}
+\NormalTok{    spec }\OtherTok{\textless{}{-}} \DecValTok{1} \SpecialCharTok{{-}}\NormalTok{ fpr\_val}
+\NormalTok{    spec\_lb }\OtherTok{\textless{}{-}} \DecValTok{1} \SpecialCharTok{{-}}\NormalTok{ fpr\_ub}
+\NormalTok{    spec\_ub }\OtherTok{\textless{}{-}} \DecValTok{1} \SpecialCharTok{{-}}\NormalTok{ fpr\_lb}
+    \CommentTok{\# DOR from logit coefficients}
+\NormalTok{    logit\_sens }\OtherTok{\textless{}{-}}\NormalTok{ s}\SpecialCharTok{$}\NormalTok{coefficients[}\DecValTok{1}\NormalTok{, }\StringTok{"Estimate"}\NormalTok{]}
+\NormalTok{    logit\_fpr }\OtherTok{\textless{}{-}}\NormalTok{ s}\SpecialCharTok{$}\NormalTok{coefficients[}\DecValTok{2}\NormalTok{, }\StringTok{"Estimate"}\NormalTok{]}
+\NormalTok{    dor\_val }\OtherTok{\textless{}{-}} \FunctionTok{exp}\NormalTok{(logit\_sens }\SpecialCharTok{{-}}\NormalTok{ logit\_fpr)}
+\NormalTok{    dor\_lb }\OtherTok{\textless{}{-}} \FunctionTok{exp}\NormalTok{(s}\SpecialCharTok{$}\NormalTok{coefficients[}\DecValTok{1}\NormalTok{, }\StringTok{"95\%ci.lb"}\NormalTok{] }\SpecialCharTok{{-}}\NormalTok{ s}\SpecialCharTok{$}\NormalTok{coefficients[}\DecValTok{2}\NormalTok{, }\StringTok{"95\%ci.ub"}\NormalTok{])}
+\NormalTok{    dor\_ub }\OtherTok{\textless{}{-}} \FunctionTok{exp}\NormalTok{(s}\SpecialCharTok{$}\NormalTok{coefficients[}\DecValTok{1}\NormalTok{, }\StringTok{"95\%ci.ub"}\NormalTok{] }\SpecialCharTok{{-}}\NormalTok{ s}\SpecialCharTok{$}\NormalTok{coefficients[}\DecValTok{2}\NormalTok{, }\StringTok{"95\%ci.lb"}\NormalTok{])}
+\NormalTok{    results\_list[[nm]] }\OtherTok{\textless{}{-}} \FunctionTok{data.frame}\NormalTok{(}
+      \AttributeTok{Subgroup =}\NormalTok{ nm,}
+      \AttributeTok{n\_studies =} \FunctionTok{nrow}\NormalTok{(subgroups[[nm]]),}
+      \AttributeTok{Sensitivity =} \FunctionTok{paste0}\NormalTok{(}\FunctionTok{round}\NormalTok{(sens\_val }\SpecialCharTok{*} \DecValTok{100}\NormalTok{, }\DecValTok{1}\NormalTok{), }\StringTok{"\% ["}\NormalTok{,}
+                           \FunctionTok{round}\NormalTok{(sens\_lb }\SpecialCharTok{*} \DecValTok{100}\NormalTok{, }\DecValTok{1}\NormalTok{), }\StringTok{"\% – "}\NormalTok{,}
+                           \FunctionTok{round}\NormalTok{(sens\_ub }\SpecialCharTok{*} \DecValTok{100}\NormalTok{, }\DecValTok{1}\NormalTok{), }\StringTok{"\%]"}\NormalTok{),}
+      \AttributeTok{Specificity =} \FunctionTok{paste0}\NormalTok{(}\FunctionTok{round}\NormalTok{(spec }\SpecialCharTok{*} \DecValTok{100}\NormalTok{, }\DecValTok{1}\NormalTok{), }\StringTok{"\% ["}\NormalTok{,}
+                           \FunctionTok{round}\NormalTok{(spec\_lb }\SpecialCharTok{*} \DecValTok{100}\NormalTok{, }\DecValTok{1}\NormalTok{), }\StringTok{"\% – "}\NormalTok{,}
+                           \FunctionTok{round}\NormalTok{(spec\_ub }\SpecialCharTok{*} \DecValTok{100}\NormalTok{, }\DecValTok{1}\NormalTok{), }\StringTok{"\%]"}\NormalTok{),}
+      \AttributeTok{DOR =} \FunctionTok{paste0}\NormalTok{(}\FunctionTok{round}\NormalTok{(dor\_val, }\DecValTok{2}\NormalTok{), }\StringTok{" ["}\NormalTok{,}
+                   \FunctionTok{round}\NormalTok{(dor\_lb, }\DecValTok{2}\NormalTok{), }\StringTok{" – "}\NormalTok{,}
+                   \FunctionTok{round}\NormalTok{(dor\_ub, }\DecValTok{2}\NormalTok{), }\StringTok{"]"}\NormalTok{)}
+\NormalTok{    )}
+\NormalTok{  \}}
+\NormalTok{\}}
+
+\FunctionTok{bind\_rows}\NormalTok{(results\_list) }\SpecialCharTok{|\textgreater{}}
+\NormalTok{  knitr}\SpecialCharTok{::}\FunctionTok{kable}\NormalTok{(}\AttributeTok{caption =} \StringTok{"Subgroup analysis by diagnostic type"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\linewidth - 8\tabcolsep) * \real{0.1505}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 8\tabcolsep) * \real{0.1075}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 8\tabcolsep) * \real{0.2366}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 8\tabcolsep) * \real{0.2366}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 8\tabcolsep) * \real{0.2688}}@{}}
+\caption{Subgroup analysis by diagnostic type}\tabularnewline
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+Subgroup
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+n\_studies
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Sensitivity
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Specificity
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+DOR
+\end{minipage} \\
+\midrule\noalign{}
+\endfirsthead
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+Subgroup
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+n\_studies
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Sensitivity
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Specificity
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+DOR
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+Immunological & 42 & 84.4\% {[}78.6\% -- 88.9\%{]} & 90.7\% {[}88.3\% --
+92.7\%{]} & 52.9 {[}27.64 -- 101.22{]} \\
+Molecular & 11 & 86.7\% {[}68.1\% -- 95.2\%{]} & 95.7\% {[}89.6\% --
+98.3\%{]} & 145.28 {[}18.33 -- 1151.63{]} \\
+\end{longtable}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Visual comparison on the ROC plane}
+\FunctionTok{plot}\NormalTok{(}\AttributeTok{x =} \DecValTok{1}\NormalTok{, }\AttributeTok{type =} \StringTok{"n"}\NormalTok{, }\AttributeTok{xlim =} \FunctionTok{c}\NormalTok{(}\DecValTok{0}\NormalTok{, }\DecValTok{1}\NormalTok{), }\AttributeTok{ylim =} \FunctionTok{c}\NormalTok{(}\DecValTok{0}\NormalTok{, }\DecValTok{1}\NormalTok{),}
+     \AttributeTok{xlab =} \StringTok{"1 − Specificity (FPR)"}\NormalTok{, }\AttributeTok{ylab =} \StringTok{"Sensitivity (TPR)"}\NormalTok{,}
+     \AttributeTok{main =} \StringTok{"Subgroup comparison on the ROC plane"}\NormalTok{)}
+\FunctionTok{abline}\NormalTok{(}\AttributeTok{a =} \DecValTok{0}\NormalTok{, }\AttributeTok{b =} \DecValTok{1}\NormalTok{, }\AttributeTok{lty =} \DecValTok{2}\NormalTok{, }\AttributeTok{col =} \StringTok{"grey80"}\NormalTok{)}
+\NormalTok{colors }\OtherTok{\textless{}{-}} \FunctionTok{c}\NormalTok{(}\StringTok{"Immunological"} \OtherTok{=} \StringTok{"\#2166ac"}\NormalTok{, }\StringTok{"Molecular"} \OtherTok{=} \StringTok{"\#b2182b"}\NormalTok{)}
+\ControlFlowTok{for}\NormalTok{ (nm }\ControlFlowTok{in} \FunctionTok{names}\NormalTok{(subgroups)) \{}
+  \ControlFlowTok{if}\NormalTok{ (}\FunctionTok{nrow}\NormalTok{(subgroups[[nm]]) }\SpecialCharTok{\textgreater{}=} \DecValTok{4}\NormalTok{) \{}
+\NormalTok{    f }\OtherTok{\textless{}{-}}\NormalTok{ mada}\SpecialCharTok{::}\FunctionTok{reitsma}\NormalTok{(subgroups[[nm]], }\AttributeTok{method =} \StringTok{"reml"}\NormalTok{)}
+\NormalTok{    mada}\SpecialCharTok{::}\FunctionTok{ROCellipse}\NormalTok{(f, }\AttributeTok{col =}\NormalTok{ colors[nm], }\AttributeTok{lwd =} \DecValTok{2}\NormalTok{)}
+    \CommentTok{\# Pooled point}
+\NormalTok{    s }\OtherTok{\textless{}{-}} \FunctionTok{summary}\NormalTok{(f)}
+\NormalTok{    sens }\OtherTok{\textless{}{-}} \FunctionTok{plogis}\NormalTok{(s}\SpecialCharTok{$}\NormalTok{coefficients[}\DecValTok{1}\NormalTok{, }\DecValTok{1}\NormalTok{])}
+\NormalTok{    spec }\OtherTok{\textless{}{-}} \FunctionTok{plogis}\NormalTok{(s}\SpecialCharTok{$}\NormalTok{coefficients[}\DecValTok{2}\NormalTok{, }\DecValTok{1}\NormalTok{])}
+    \FunctionTok{points}\NormalTok{(}\DecValTok{1} \SpecialCharTok{{-}}\NormalTok{ spec, sens, }\AttributeTok{pch =} \DecValTok{19}\NormalTok{, }\AttributeTok{col =}\NormalTok{ colors[nm], }\AttributeTok{cex =} \FloatTok{1.5}\NormalTok{)}
+\NormalTok{  \}}
+\NormalTok{\}}
+\FunctionTok{legend}\NormalTok{(}\StringTok{"bottomright"}\NormalTok{, }\AttributeTok{legend =} \FunctionTok{names}\NormalTok{(colors), }\AttributeTok{fill =}\NormalTok{ colors, }\AttributeTok{title =} \StringTok{"Diagnostic type"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\pandocbounded{\includegraphics[keepaspectratio]{diagnostic_meta_analysis_files/figure-pdf/unnamed-chunk-7-1.pdf}}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{4. Forest plot --- Sensitivity \&
+Specificity}\label{forest-plot-sensitivity-specificity}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Forest plot using meta package on logit{-}transformed proportions}
+\CommentTok{\# Back{-}transform to proportions for the plot}
+
+\FunctionTok{forest}\NormalTok{(meta\_sens,}
+  \AttributeTok{leftcols =} \FunctionTok{c}\NormalTok{(}\StringTok{"studlab"}\NormalTok{),}
+  \AttributeTok{rightcols =} \FunctionTok{c}\NormalTok{(}\StringTok{"effect"}\NormalTok{, }\StringTok{"ci"}\NormalTok{, }\StringTok{"w.random"}\NormalTok{),}
+  \AttributeTok{leftlabs =} \FunctionTok{c}\NormalTok{(}\StringTok{"Study"}\NormalTok{),}
+  \AttributeTok{rightlabs =} \FunctionTok{c}\NormalTok{(}\StringTok{"Sens."}\NormalTok{, }\StringTok{"95\% CI"}\NormalTok{, }\StringTok{"Weight"}\NormalTok{),}
+  \AttributeTok{smlab =} \StringTok{"Sensitivity (logit scale → back{-}transformed)"}\NormalTok{,}
+  \AttributeTok{pooled.totals =} \ConstantTok{TRUE}\NormalTok{,}
+  \AttributeTok{hetstat =} \ConstantTok{TRUE}\NormalTok{,}
+  \AttributeTok{overall =} \ConstantTok{TRUE}\NormalTok{,}
+  \AttributeTok{digits =} \DecValTok{2}
+\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\pandocbounded{\includegraphics[keepaspectratio]{diagnostic_meta_analysis_files/figure-pdf/unnamed-chunk-8-1.pdf}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{forest}\NormalTok{(meta\_spec,}
+  \AttributeTok{leftcols =} \FunctionTok{c}\NormalTok{(}\StringTok{"studlab"}\NormalTok{),}
+  \AttributeTok{rightcols =} \FunctionTok{c}\NormalTok{(}\StringTok{"effect"}\NormalTok{, }\StringTok{"ci"}\NormalTok{, }\StringTok{"w.random"}\NormalTok{),}
+  \AttributeTok{leftlabs =} \FunctionTok{c}\NormalTok{(}\StringTok{"Study"}\NormalTok{),}
+  \AttributeTok{rightlabs =} \FunctionTok{c}\NormalTok{(}\StringTok{"Spec."}\NormalTok{, }\StringTok{"95\% CI"}\NormalTok{, }\StringTok{"Weight"}\NormalTok{),}
+  \AttributeTok{smlab =} \StringTok{"Specificity (logit scale → back{-}transformed)"}\NormalTok{,}
+  \AttributeTok{pooled.totals =} \ConstantTok{TRUE}\NormalTok{,}
+  \AttributeTok{hetstat =} \ConstantTok{TRUE}\NormalTok{,}
+  \AttributeTok{overall =} \ConstantTok{TRUE}\NormalTok{,}
+  \AttributeTok{digits =} \DecValTok{2}
+\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\pandocbounded{\includegraphics[keepaspectratio]{diagnostic_meta_analysis_files/figure-pdf/unnamed-chunk-9-1.pdf}}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{5. Diagnostic Odds Ratio (DOR) forest
+plot}\label{diagnostic-odds-ratio-dor-forest-plot}
+
+The DOR = (TP/FP) / (FN/TN) --- a single-number summary of test
+performance. DOR \textgreater{} 1 means the test discriminates diseased
+from non-diseased.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Calculate DOR per study (with continuity correction for zeros)}
+\NormalTok{diag\_for\_dor }\OtherTok{\textless{}{-}}\NormalTok{ diag }\SpecialCharTok{|\textgreater{}}
+  \FunctionTok{mutate}\NormalTok{(}
+    \AttributeTok{tp\_c =}\NormalTok{ TP }\SpecialCharTok{+} \FloatTok{0.5}\NormalTok{,}
+    \AttributeTok{fp\_c =}\NormalTok{ FP }\SpecialCharTok{+} \FloatTok{0.5}\NormalTok{,}
+    \AttributeTok{fn\_c =}\NormalTok{ FN }\SpecialCharTok{+} \FloatTok{0.5}\NormalTok{,}
+    \AttributeTok{tn\_c =}\NormalTok{ TN }\SpecialCharTok{+} \FloatTok{0.5}\NormalTok{,}
+    \AttributeTok{log\_dor =} \FunctionTok{log}\NormalTok{((tp\_c }\SpecialCharTok{/}\NormalTok{ fp\_c) }\SpecialCharTok{/}\NormalTok{ (fn\_c }\SpecialCharTok{/}\NormalTok{ tn\_c)),}
+    \AttributeTok{se\_log\_dor =} \FunctionTok{sqrt}\NormalTok{(}\DecValTok{1} \SpecialCharTok{/}\NormalTok{ tp\_c }\SpecialCharTok{+} \DecValTok{1} \SpecialCharTok{/}\NormalTok{ fp\_c }\SpecialCharTok{+} \DecValTok{1} \SpecialCharTok{/}\NormalTok{ fn\_c }\SpecialCharTok{+} \DecValTok{1} \SpecialCharTok{/}\NormalTok{ tn\_c)}
+\NormalTok{  )}
+
+\NormalTok{meta\_dor }\OtherTok{\textless{}{-}} \FunctionTok{metagen}\NormalTok{(}
+  \AttributeTok{TE =}\NormalTok{ log\_dor, }\AttributeTok{seTE =}\NormalTok{ se\_log\_dor,}
+  \AttributeTok{data =}\NormalTok{ diag\_for\_dor,}
+  \AttributeTok{studlab =}\NormalTok{ study\_label,}
+  \AttributeTok{sm =} \StringTok{"OR"}\NormalTok{,}
+  \AttributeTok{fixed =} \ConstantTok{FALSE}\NormalTok{, }\AttributeTok{random =} \ConstantTok{TRUE}\NormalTok{,}
+  \AttributeTok{title =} \StringTok{"Diagnostic Odds Ratio"}
+\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{forest}\NormalTok{(meta\_dor,}
+  \AttributeTok{leftcols =} \FunctionTok{c}\NormalTok{(}\StringTok{"studlab"}\NormalTok{),}
+  \AttributeTok{rightcols =} \FunctionTok{c}\NormalTok{(}\StringTok{"effect"}\NormalTok{, }\StringTok{"ci"}\NormalTok{, }\StringTok{"w.random"}\NormalTok{),}
+  \AttributeTok{leftlabs =} \FunctionTok{c}\NormalTok{(}\StringTok{"Study"}\NormalTok{),}
+  \AttributeTok{rightlabs =} \FunctionTok{c}\NormalTok{(}\StringTok{"DOR"}\NormalTok{, }\StringTok{"95\% CI"}\NormalTok{, }\StringTok{"Weight"}\NormalTok{),}
+  \AttributeTok{smlab =} \StringTok{"Diagnostic Odds Ratio"}\NormalTok{,}
+  \AttributeTok{pooled.totals =} \ConstantTok{TRUE}\NormalTok{,}
+  \AttributeTok{hetstat =} \ConstantTok{TRUE}\NormalTok{,}
+  \AttributeTok{overall =} \ConstantTok{TRUE}\NormalTok{,}
+  \AttributeTok{digits =} \DecValTok{2}
+\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\pandocbounded{\includegraphics[keepaspectratio]{diagnostic_meta_analysis_files/figure-pdf/unnamed-chunk-11-1.pdf}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{cat}\NormalTok{(}\StringTok{"Pooled DOR ="}\NormalTok{, }\FunctionTok{round}\NormalTok{(}\FunctionTok{exp}\NormalTok{(meta\_dor}\SpecialCharTok{$}\NormalTok{TE.random), }\DecValTok{2}\NormalTok{),}
+    \StringTok{"95\% CI:"}\NormalTok{, }\FunctionTok{round}\NormalTok{(}\FunctionTok{exp}\NormalTok{(meta\_dor}\SpecialCharTok{$}\NormalTok{lower.random), }\DecValTok{2}\NormalTok{), }\StringTok{"–"}\NormalTok{,}
+    \FunctionTok{round}\NormalTok{(}\FunctionTok{exp}\NormalTok{(meta\_dor}\SpecialCharTok{$}\NormalTok{upper.random), }\DecValTok{2}\NormalTok{), }\StringTok{"}\SpecialCharTok{\textbackslash{}n}\StringTok{"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+Pooled DOR = 82.95 95% CI: 48.79 – 141.03 
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{cat}\NormalTok{(}\StringTok{"Heterogeneity: I² ="}\NormalTok{, }\FunctionTok{round}\NormalTok{(meta\_dor}\SpecialCharTok{$}\NormalTok{I2, }\DecValTok{1}\NormalTok{), }\StringTok{"\%}\SpecialCharTok{\textbackslash{}n}\StringTok{"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+Heterogeneity: I² = 0.9 %
+\end{verbatim}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{6. SROC Curve (Summary ROC)}\label{sroc-curve-summary-roc}
+
+The bivariate model can be plotted as an SROC curve. This shows the
+trade-off between sensitivity and specificity across all studies.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Build the SROC plot manually using mada\textquotesingle{}s sroc() and ROCellipse()}
+
+\CommentTok{\# Start with an empty plot}
+\FunctionTok{plot}\NormalTok{(}\ConstantTok{NA}\NormalTok{, }\AttributeTok{xlim =} \FunctionTok{c}\NormalTok{(}\DecValTok{0}\NormalTok{, }\DecValTok{1}\NormalTok{), }\AttributeTok{ylim =} \FunctionTok{c}\NormalTok{(}\DecValTok{0}\NormalTok{, }\DecValTok{1}\NormalTok{),}
+     \AttributeTok{xlab =} \StringTok{"False Positive Rate (1 − Specificity)"}\NormalTok{,}
+     \AttributeTok{ylab =} \StringTok{"True Positive Rate (Sensitivity)"}\NormalTok{,}
+     \AttributeTok{main =} \StringTok{"SROC Curve with 95\% confidence \& prediction regions"}\NormalTok{)}
+\FunctionTok{abline}\NormalTok{(}\AttributeTok{a =} \DecValTok{0}\NormalTok{, }\AttributeTok{b =} \DecValTok{1}\NormalTok{, }\AttributeTok{lty =} \DecValTok{2}\NormalTok{, }\AttributeTok{col =} \StringTok{"grey80"}\NormalTok{)}
+
+\CommentTok{\# Prediction region (larger ellipse)}
+\NormalTok{mada}\SpecialCharTok{::}\FunctionTok{ROCellipse}\NormalTok{(fit, }\AttributeTok{pch =} \ConstantTok{NA}\NormalTok{, }\AttributeTok{lty =} \DecValTok{3}\NormalTok{, }\AttributeTok{lwd =} \FloatTok{1.5}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+$ROCellipse
+             [,1]      [,2]
+  [1,] 0.10627178 0.8777542
+  [2,] 0.10772878 0.8752754
+  [3,] 0.10911812 0.8726349
+  [4,] 0.11043138 0.8698366
+  [5,] 0.11166041 0.8668857
+  [6,] 0.11279746 0.8637879
+  [7,] 0.11383518 0.8605503
+  [8,] 0.11476680 0.8571809
+  [9,] 0.11558613 0.8536891
+ [10,] 0.11628766 0.8500852
+ [11,] 0.11686663 0.8463812
+ [12,] 0.11731908 0.8425899
+ [13,] 0.11764188 0.8387258
+ [14,] 0.11783280 0.8348043
+ [15,] 0.11789051 0.8308423
+ [16,] 0.11781461 0.8268576
+ [17,] 0.11760563 0.8228691
+ [18,] 0.11726501 0.8188967
+ [19,] 0.11679513 0.8149609
+ [20,] 0.11619921 0.8110829
+ [21,] 0.11548134 0.8072844
+ [22,] 0.11464637 0.8035872
+ [23,] 0.11369992 0.8000132
+ [24,] 0.11264826 0.7965843
+ [25,] 0.11149824 0.7933216
+ [26,] 0.11025727 0.7902459
+ [27,] 0.10893316 0.7873772
+ [28,] 0.10753410 0.7847342
+ [29,] 0.10606855 0.7823346
+ [30,] 0.10454515 0.7801946
+ [31,] 0.10297265 0.7783287
+ [32,] 0.10135982 0.7767497
+ [33,] 0.09971538 0.7754686
+ [34,] 0.09804793 0.7744943
+ [35,] 0.09636588 0.7738335
+ [36,] 0.09467741 0.7734910
+ [37,] 0.09299037 0.7734692
+ [38,] 0.09131229 0.7737681
+ [39,] 0.08965033 0.7743857
+ [40,] 0.08801123 0.7753176
+ [41,] 0.08640129 0.7765574
+ [42,] 0.08482641 0.7780964
+ [43,] 0.08329199 0.7799240
+ [44,] 0.08180303 0.7820275
+ [45,] 0.08036405 0.7843927
+ [46,] 0.07897917 0.7870035
+ [47,] 0.07765205 0.7898426
+ [48,] 0.07638599 0.7928912
+ [49,] 0.07518389 0.7961296
+ [50,] 0.07404830 0.7995371
+ [51,] 0.07298145 0.8030926
+ [52,] 0.07198526 0.8067743
+ [53,] 0.07106137 0.8105603
+ [54,] 0.07021119 0.8144287
+ [55,] 0.06943588 0.8183579
+ [56,] 0.06873643 0.8223266
+ [57,] 0.06811365 0.8263141
+ [58,] 0.06756820 0.8303005
+ [59,] 0.06710060 0.8342666
+ [60,] 0.06671127 0.8381946
+ [61,] 0.06640053 0.8420675
+ [62,] 0.06616864 0.8458695
+ [63,] 0.06601575 0.8495863
+ [64,] 0.06594197 0.8532045
+ [65,] 0.06594737 0.8567122
+ [66,] 0.06603192 0.8600989
+ [67,] 0.06619558 0.8633549
+ [68,] 0.06643823 0.8664722
+ [69,] 0.06675968 0.8694435
+ [70,] 0.06715970 0.8722629
+ [71,] 0.06763793 0.8749252
+ [72,] 0.06819395 0.8774262
+ [73,] 0.06882722 0.8797625
+ [74,] 0.06953705 0.8819315
+ [75,] 0.07032262 0.8839312
+ [76,] 0.07118292 0.8857599
+ [77,] 0.07211674 0.8874166
+ [78,] 0.07312266 0.8889005
+ [79,] 0.07419899 0.8902113
+ [80,] 0.07534378 0.8913488
+ [81,] 0.07655475 0.8923128
+ [82,] 0.07782930 0.8931035
+ [83,] 0.07916449 0.8937208
+ [84,] 0.08055697 0.8941651
+ [85,] 0.08200301 0.8944363
+ [86,] 0.08349844 0.8945345
+ [87,] 0.08503867 0.8944598
+ [88,] 0.08661866 0.8942122
+ [89,] 0.08823292 0.8937915
+ [90,] 0.08987552 0.8931977
+ [91,] 0.09154009 0.8924307
+ [92,] 0.09321981 0.8914903
+ [93,] 0.09490750 0.8903765
+ [94,] 0.09659557 0.8890893
+ [95,] 0.09827611 0.8876289
+ [96,] 0.09994092 0.8859957
+ [97,] 0.10158157 0.8841904
+ [98,] 0.10318942 0.8822139
+ [99,] 0.10475575 0.8800679
+[100,] 0.10627178 0.8777542
+
+$fprsens
+           [,1]      [,2]
+[1,] 0.08852977 0.8432854
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Confidence region (smaller ellipse)}
+\NormalTok{mada}\SpecialCharTok{::}\FunctionTok{ROCellipse}\NormalTok{(fit, }\AttributeTok{pch =} \ConstantTok{NA}\NormalTok{, }\AttributeTok{level =} \FloatTok{0.95}\NormalTok{,}
+                 \AttributeTok{lty =} \DecValTok{2}\NormalTok{, }\AttributeTok{lwd =} \DecValTok{2}\NormalTok{, }\AttributeTok{col =} \StringTok{"black"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+$ROCellipse
+             [,1]      [,2]
+  [1,] 0.10627178 0.8777542
+  [2,] 0.10772878 0.8752754
+  [3,] 0.10911812 0.8726349
+  [4,] 0.11043138 0.8698366
+  [5,] 0.11166041 0.8668857
+  [6,] 0.11279746 0.8637879
+  [7,] 0.11383518 0.8605503
+  [8,] 0.11476680 0.8571809
+  [9,] 0.11558613 0.8536891
+ [10,] 0.11628766 0.8500852
+ [11,] 0.11686663 0.8463812
+ [12,] 0.11731908 0.8425899
+ [13,] 0.11764188 0.8387258
+ [14,] 0.11783280 0.8348043
+ [15,] 0.11789051 0.8308423
+ [16,] 0.11781461 0.8268576
+ [17,] 0.11760563 0.8228691
+ [18,] 0.11726501 0.8188967
+ [19,] 0.11679513 0.8149609
+ [20,] 0.11619921 0.8110829
+ [21,] 0.11548134 0.8072844
+ [22,] 0.11464637 0.8035872
+ [23,] 0.11369992 0.8000132
+ [24,] 0.11264826 0.7965843
+ [25,] 0.11149824 0.7933216
+ [26,] 0.11025727 0.7902459
+ [27,] 0.10893316 0.7873772
+ [28,] 0.10753410 0.7847342
+ [29,] 0.10606855 0.7823346
+ [30,] 0.10454515 0.7801946
+ [31,] 0.10297265 0.7783287
+ [32,] 0.10135982 0.7767497
+ [33,] 0.09971538 0.7754686
+ [34,] 0.09804793 0.7744943
+ [35,] 0.09636588 0.7738335
+ [36,] 0.09467741 0.7734910
+ [37,] 0.09299037 0.7734692
+ [38,] 0.09131229 0.7737681
+ [39,] 0.08965033 0.7743857
+ [40,] 0.08801123 0.7753176
+ [41,] 0.08640129 0.7765574
+ [42,] 0.08482641 0.7780964
+ [43,] 0.08329199 0.7799240
+ [44,] 0.08180303 0.7820275
+ [45,] 0.08036405 0.7843927
+ [46,] 0.07897917 0.7870035
+ [47,] 0.07765205 0.7898426
+ [48,] 0.07638599 0.7928912
+ [49,] 0.07518389 0.7961296
+ [50,] 0.07404830 0.7995371
+ [51,] 0.07298145 0.8030926
+ [52,] 0.07198526 0.8067743
+ [53,] 0.07106137 0.8105603
+ [54,] 0.07021119 0.8144287
+ [55,] 0.06943588 0.8183579
+ [56,] 0.06873643 0.8223266
+ [57,] 0.06811365 0.8263141
+ [58,] 0.06756820 0.8303005
+ [59,] 0.06710060 0.8342666
+ [60,] 0.06671127 0.8381946
+ [61,] 0.06640053 0.8420675
+ [62,] 0.06616864 0.8458695
+ [63,] 0.06601575 0.8495863
+ [64,] 0.06594197 0.8532045
+ [65,] 0.06594737 0.8567122
+ [66,] 0.06603192 0.8600989
+ [67,] 0.06619558 0.8633549
+ [68,] 0.06643823 0.8664722
+ [69,] 0.06675968 0.8694435
+ [70,] 0.06715970 0.8722629
+ [71,] 0.06763793 0.8749252
+ [72,] 0.06819395 0.8774262
+ [73,] 0.06882722 0.8797625
+ [74,] 0.06953705 0.8819315
+ [75,] 0.07032262 0.8839312
+ [76,] 0.07118292 0.8857599
+ [77,] 0.07211674 0.8874166
+ [78,] 0.07312266 0.8889005
+ [79,] 0.07419899 0.8902113
+ [80,] 0.07534378 0.8913488
+ [81,] 0.07655475 0.8923128
+ [82,] 0.07782930 0.8931035
+ [83,] 0.07916449 0.8937208
+ [84,] 0.08055697 0.8941651
+ [85,] 0.08200301 0.8944363
+ [86,] 0.08349844 0.8945345
+ [87,] 0.08503867 0.8944598
+ [88,] 0.08661866 0.8942122
+ [89,] 0.08823292 0.8937915
+ [90,] 0.08987552 0.8931977
+ [91,] 0.09154009 0.8924307
+ [92,] 0.09321981 0.8914903
+ [93,] 0.09490750 0.8903765
+ [94,] 0.09659557 0.8890893
+ [95,] 0.09827611 0.8876289
+ [96,] 0.09994092 0.8859957
+ [97,] 0.10158157 0.8841904
+ [98,] 0.10318942 0.8822139
+ [99,] 0.10475575 0.8800679
+[100,] 0.10627178 0.8777542
+
+$fprsens
+           [,1]      [,2]
+[1,] 0.08852977 0.8432854
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# SROC curve}
+\NormalTok{fpr\_seq }\OtherTok{\textless{}{-}} \FunctionTok{seq}\NormalTok{(}\FloatTok{0.01}\NormalTok{, }\FloatTok{0.99}\NormalTok{, }\FloatTok{0.01}\NormalTok{)}
+\NormalTok{sroc\_curve }\OtherTok{\textless{}{-}}\NormalTok{ mada}\SpecialCharTok{::}\FunctionTok{sroc}\NormalTok{(fit, }\AttributeTok{fpr =}\NormalTok{ fpr\_seq)}
+\FunctionTok{lines}\NormalTok{(sroc\_curve, }\AttributeTok{lwd =} \DecValTok{2}\NormalTok{, }\AttributeTok{col =} \StringTok{"black"}\NormalTok{)}
+
+\CommentTok{\# Pooled estimate point}
+\NormalTok{sens\_pooled }\OtherTok{\textless{}{-}}\NormalTok{ s}\SpecialCharTok{$}\NormalTok{coefficients[}\StringTok{"sensitivity"}\NormalTok{, }\StringTok{"Estimate"}\NormalTok{]}
+\NormalTok{fpr\_pooled }\OtherTok{\textless{}{-}}\NormalTok{ s}\SpecialCharTok{$}\NormalTok{coefficients[}\StringTok{"false pos. rate"}\NormalTok{, }\StringTok{"Estimate"}\NormalTok{]}
+\FunctionTok{points}\NormalTok{(fpr\_pooled, sens\_pooled, }\AttributeTok{pch =} \DecValTok{19}\NormalTok{, }\AttributeTok{cex =} \FloatTok{1.5}\NormalTok{)}
+
+\CommentTok{\# Individual study points}
+\FunctionTok{text}\NormalTok{(}\DecValTok{1} \SpecialCharTok{{-}}\NormalTok{ diag}\SpecialCharTok{$}\NormalTok{specificity }\SpecialCharTok{/} \DecValTok{100}\NormalTok{,}
+\NormalTok{     diag}\SpecialCharTok{$}\NormalTok{sensitivity }\SpecialCharTok{/} \DecValTok{100}\NormalTok{,}
+     \AttributeTok{labels =} \FunctionTok{seq\_len}\NormalTok{(}\FunctionTok{nrow}\NormalTok{(diag)),}
+     \AttributeTok{cex =} \FloatTok{0.6}\NormalTok{, }\AttributeTok{col =} \StringTok{"grey40"}\NormalTok{)}
+
+\FunctionTok{legend}\NormalTok{(}\StringTok{"bottomright"}\NormalTok{,}
+  \AttributeTok{legend =} \FunctionTok{c}\NormalTok{(}\StringTok{"Observed study"}\NormalTok{, }\StringTok{"SROC curve"}\NormalTok{,}
+             \StringTok{"95\% confidence region"}\NormalTok{, }\StringTok{"95\% prediction region"}\NormalTok{),}
+  \AttributeTok{pch =} \FunctionTok{c}\NormalTok{(}\DecValTok{1}\NormalTok{, }\ConstantTok{NA}\NormalTok{, }\ConstantTok{NA}\NormalTok{, }\ConstantTok{NA}\NormalTok{),}
+  \AttributeTok{lty =} \FunctionTok{c}\NormalTok{(}\ConstantTok{NA}\NormalTok{, }\DecValTok{1}\NormalTok{, }\DecValTok{2}\NormalTok{, }\DecValTok{3}\NormalTok{),}
+  \AttributeTok{col =} \FunctionTok{c}\NormalTok{(}\StringTok{"black"}\NormalTok{, }\StringTok{"black"}\NormalTok{, }\StringTok{"black"}\NormalTok{, }\StringTok{"black"}\NormalTok{),}
+  \AttributeTok{cex =} \FloatTok{0.8}
+\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\pandocbounded{\includegraphics[keepaspectratio]{diagnostic_meta_analysis_files/figure-pdf/unnamed-chunk-13-1.pdf}}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{7. Interactive funnel plot --- Diagnostic Odds
+Ratio}\label{interactive-funnel-plot-diagnostic-odds-ratio}
+
+We use the DOR (log scale) for the funnel plot because it's a single
+univariate measure. Asymmetry may indicate publication bias. Hover over
+each point to see the study details.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{library}\NormalTok{(plotly)}
+
+\CommentTok{\# Build a data frame with the funnel plot variables}
+\NormalTok{funnel\_data }\OtherTok{\textless{}{-}} \FunctionTok{data.frame}\NormalTok{(}
+  \AttributeTok{study =}\NormalTok{ diag\_for\_dor}\SpecialCharTok{$}\NormalTok{study\_label,}
+  \AttributeTok{log\_dor =}\NormalTok{ meta\_dor}\SpecialCharTok{$}\NormalTok{TE,}
+  \AttributeTok{se =}\NormalTok{ meta\_dor}\SpecialCharTok{$}\NormalTok{seTE,}
+  \AttributeTok{dor =} \FunctionTok{exp}\NormalTok{(meta\_dor}\SpecialCharTok{$}\NormalTok{TE),}
+  \AttributeTok{diagnostic\_type =}\NormalTok{ diag\_for\_dor}\SpecialCharTok{$}\NormalTok{diagnostic\_type,}
+  \AttributeTok{country =}\NormalTok{ diag\_for\_dor}\SpecialCharTok{$}\NormalTok{country,}
+  \AttributeTok{study\_on =}\NormalTok{ diag\_for\_dor}\SpecialCharTok{$}\NormalTok{study\_on,}
+  \AttributeTok{method =}\NormalTok{ diag\_for\_dor}\SpecialCharTok{$}\NormalTok{method}
+\NormalTok{) }\SpecialCharTok{|\textgreater{}}
+  \FunctionTok{mutate}\NormalTok{(}
+    \CommentTok{\# Create hover text}
+    \AttributeTok{hover =} \FunctionTok{paste0}\NormalTok{(}
+      \StringTok{"\textless{}b\textgreater{}"}\NormalTok{, study, }\StringTok{"\textless{}/b\textgreater{}\textless{}br\textgreater{}"}\NormalTok{,}
+      \StringTok{"DOR: "}\NormalTok{, }\FunctionTok{round}\NormalTok{(dor, }\DecValTok{1}\NormalTok{), }\StringTok{"\textless{}br\textgreater{}"}\NormalTok{,}
+      \StringTok{"log(DOR): "}\NormalTok{, }\FunctionTok{round}\NormalTok{(log\_dor, }\DecValTok{2}\NormalTok{), }\StringTok{"\textless{}br\textgreater{}"}\NormalTok{,}
+      \StringTok{"SE: "}\NormalTok{, }\FunctionTok{round}\NormalTok{(se, }\DecValTok{3}\NormalTok{), }\StringTok{"\textless{}br\textgreater{}"}\NormalTok{,}
+      \StringTok{"Type: "}\NormalTok{, diagnostic\_type, }\StringTok{"\textless{}br\textgreater{}"}\NormalTok{,}
+      \StringTok{"Host: "}\NormalTok{, study\_on, }\StringTok{"\textless{}br\textgreater{}"}\NormalTok{,}
+      \StringTok{"Country: "}\NormalTok{, country}
+\NormalTok{    )}
+\NormalTok{  )}
+
+\CommentTok{\# Pseudo95\% confidence limits around the pooled estimate}
+\NormalTok{pooled\_log\_dor }\OtherTok{\textless{}{-}}\NormalTok{ meta\_dor}\SpecialCharTok{$}\NormalTok{TE.random}
+\NormalTok{y\_lim }\OtherTok{\textless{}{-}} \FunctionTok{max}\NormalTok{(funnel\_data}\SpecialCharTok{$}\NormalTok{se) }\SpecialCharTok{*} \FloatTok{1.15}
+\NormalTok{x\_range }\OtherTok{\textless{}{-}} \FunctionTok{max}\NormalTok{(}\FunctionTok{abs}\NormalTok{(funnel\_data}\SpecialCharTok{$}\NormalTok{log\_dor }\SpecialCharTok{{-}}\NormalTok{ pooled\_log\_dor)) }\SpecialCharTok{*} \FloatTok{1.3}
+\NormalTok{se\_seq }\OtherTok{\textless{}{-}} \FunctionTok{seq}\NormalTok{(}\DecValTok{0}\NormalTok{, y\_lim, }\AttributeTok{length.out =} \DecValTok{50}\NormalTok{)}
+
+\CommentTok{\# Funnel triangle boundaries (pseudo{-}95\% CI)}
+\NormalTok{ci\_upper }\OtherTok{\textless{}{-}}\NormalTok{ pooled\_log\_dor }\SpecialCharTok{+} \FloatTok{1.96} \SpecialCharTok{*}\NormalTok{ se\_seq}
+\NormalTok{ci\_lower }\OtherTok{\textless{}{-}}\NormalTok{ pooled\_log\_dor }\SpecialCharTok{{-}} \FloatTok{1.96} \SpecialCharTok{*}\NormalTok{ se\_seq}
+
+\NormalTok{fig }\OtherTok{\textless{}{-}} \FunctionTok{plot\_ly}\NormalTok{()}
+
+\CommentTok{\# Add the pseudo{-}95\% CI lines}
+\NormalTok{fig }\OtherTok{\textless{}{-}}\NormalTok{ fig }\SpecialCharTok{|\textgreater{}} \FunctionTok{add\_trace}\NormalTok{(}
+  \AttributeTok{x =} \SpecialCharTok{\textasciitilde{}}\NormalTok{ci\_upper, }\AttributeTok{y =} \SpecialCharTok{\textasciitilde{}}\NormalTok{se\_seq,}
+  \AttributeTok{type =} \StringTok{"scatter"}\NormalTok{, }\AttributeTok{mode =} \StringTok{"lines"}\NormalTok{,}
+  \AttributeTok{line =} \FunctionTok{list}\NormalTok{(}\AttributeTok{color =} \StringTok{"grey60"}\NormalTok{, }\AttributeTok{dash =} \StringTok{"dash"}\NormalTok{),}
+  \AttributeTok{showlegend =} \ConstantTok{FALSE}\NormalTok{,}
+  \AttributeTok{hoverinfo =} \StringTok{"none"}
+\NormalTok{)}
+\NormalTok{fig }\OtherTok{\textless{}{-}}\NormalTok{ fig }\SpecialCharTok{|\textgreater{}} \FunctionTok{add\_trace}\NormalTok{(}
+  \AttributeTok{x =} \SpecialCharTok{\textasciitilde{}}\NormalTok{ci\_lower, }\AttributeTok{y =} \SpecialCharTok{\textasciitilde{}}\NormalTok{se\_seq,}
+  \AttributeTok{type =} \StringTok{"scatter"}\NormalTok{, }\AttributeTok{mode =} \StringTok{"lines"}\NormalTok{,}
+  \AttributeTok{line =} \FunctionTok{list}\NormalTok{(}\AttributeTok{color =} \StringTok{"grey60"}\NormalTok{, }\AttributeTok{dash =} \StringTok{"dash"}\NormalTok{),}
+  \AttributeTok{showlegend =} \ConstantTok{FALSE}\NormalTok{,}
+  \AttributeTok{hoverinfo =} \StringTok{"none"}
+\NormalTok{)}
+
+\CommentTok{\# Vertical line at pooled estimate}
+\NormalTok{fig }\OtherTok{\textless{}{-}}\NormalTok{ fig }\SpecialCharTok{|\textgreater{}} \FunctionTok{add\_trace}\NormalTok{(}
+  \AttributeTok{x =} \FunctionTok{c}\NormalTok{(pooled\_log\_dor, pooled\_log\_dor), }\AttributeTok{y =} \FunctionTok{c}\NormalTok{(}\DecValTok{0}\NormalTok{, y\_lim),}
+  \AttributeTok{type =} \StringTok{"scatter"}\NormalTok{, }\AttributeTok{mode =} \StringTok{"lines"}\NormalTok{,}
+  \AttributeTok{line =} \FunctionTok{list}\NormalTok{(}\AttributeTok{color =} \StringTok{"grey40"}\NormalTok{, }\AttributeTok{dash =} \StringTok{"dot"}\NormalTok{),}
+  \AttributeTok{showlegend =} \ConstantTok{FALSE}\NormalTok{,}
+  \AttributeTok{hoverinfo =} \StringTok{"none"}
+\NormalTok{)}
+
+\CommentTok{\# Add the study points, coloured by diagnostic type}
+\NormalTok{colors }\OtherTok{\textless{}{-}} \FunctionTok{c}\NormalTok{(}\StringTok{"Immunological"} \OtherTok{=} \StringTok{"\#228B22"}\NormalTok{, }\StringTok{"Molecular"} \OtherTok{=} \StringTok{"\#4169E1"}\NormalTok{)}
+\ControlFlowTok{for}\NormalTok{ (dt }\ControlFlowTok{in} \FunctionTok{unique}\NormalTok{(funnel\_data}\SpecialCharTok{$}\NormalTok{diagnostic\_type)) \{}
+\NormalTok{  sub }\OtherTok{\textless{}{-}}\NormalTok{ funnel\_data[funnel\_data}\SpecialCharTok{$}\NormalTok{diagnostic\_type }\SpecialCharTok{==}\NormalTok{ dt, ]}
+\NormalTok{  fig }\OtherTok{\textless{}{-}}\NormalTok{ fig }\SpecialCharTok{|\textgreater{}} \FunctionTok{add\_trace}\NormalTok{(}
+    \AttributeTok{x =} \SpecialCharTok{\textasciitilde{}}\NormalTok{log\_dor, }\AttributeTok{y =} \SpecialCharTok{\textasciitilde{}}\NormalTok{se,}
+    \AttributeTok{data =}\NormalTok{ sub,}
+    \AttributeTok{type =} \StringTok{"scatter"}\NormalTok{, }\AttributeTok{mode =} \StringTok{"markers"}\NormalTok{,}
+    \AttributeTok{marker =} \FunctionTok{list}\NormalTok{(}
+      \AttributeTok{size =} \DecValTok{8}\NormalTok{,}
+      \AttributeTok{color =}\NormalTok{ colors[dt],}
+      \AttributeTok{line =} \FunctionTok{list}\NormalTok{(}\AttributeTok{color =} \StringTok{"black"}\NormalTok{, }\AttributeTok{width =} \FloatTok{0.5}\NormalTok{)}
+\NormalTok{    ),}
+    \AttributeTok{text =} \SpecialCharTok{\textasciitilde{}}\NormalTok{hover,}
+    \AttributeTok{hoverinfo =} \StringTok{"text"}\NormalTok{,}
+    \AttributeTok{name =}\NormalTok{ dt}
+\NormalTok{  )}
+\NormalTok{\}}
+
+\NormalTok{fig }\OtherTok{\textless{}{-}}\NormalTok{ fig }\SpecialCharTok{|\textgreater{}} \FunctionTok{layout}\NormalTok{(}
+  \AttributeTok{title =} \StringTok{"Interactive funnel plot — Diagnostic Odds Ratio"}\NormalTok{,}
+  \AttributeTok{xaxis =} \FunctionTok{list}\NormalTok{(}
+    \AttributeTok{title =} \StringTok{"log(Diagnostic Odds Ratio)"}\NormalTok{,}
+    \AttributeTok{zeroline =} \ConstantTok{FALSE}\NormalTok{,}
+    \AttributeTok{range =} \FunctionTok{c}\NormalTok{(pooled\_log\_dor }\SpecialCharTok{{-}}\NormalTok{ x\_range, pooled\_log\_dor }\SpecialCharTok{+}\NormalTok{ x\_range)}
+\NormalTok{  ),}
+  \AttributeTok{yaxis =} \FunctionTok{list}\NormalTok{(}
+    \AttributeTok{title =} \StringTok{"Standard Error"}\NormalTok{,}
+    \AttributeTok{autorange =} \StringTok{"reversed"}\NormalTok{,}
+    \AttributeTok{zeroline =} \ConstantTok{FALSE}\NormalTok{,}
+    \AttributeTok{range =} \FunctionTok{c}\NormalTok{(y\_lim, }\DecValTok{0}\NormalTok{)}
+\NormalTok{  ),}
+  \AttributeTok{hovermode =} \StringTok{"closest"}\NormalTok{,}
+  \AttributeTok{legend =} \FunctionTok{list}\NormalTok{(}\AttributeTok{title =} \FunctionTok{list}\NormalTok{(}\AttributeTok{text =} \StringTok{"\textless{}b\textgreater{}Diagnostic type\textless{}/b\textgreater{}"}\NormalTok{))}
+\NormalTok{)}
+
+\NormalTok{fig}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{funnel}\NormalTok{(meta\_dor,}
+  \AttributeTok{studlab =} \ConstantTok{TRUE}\NormalTok{,}
+  \AttributeTok{xlab =} \StringTok{"Diagnostic Odds Ratio (log scale)"}\NormalTok{,}
+  \AttributeTok{ylab =} \StringTok{"Standard Error"}\NormalTok{,}
+  \AttributeTok{main =} \StringTok{"Funnel plot — Diagnostic Odds Ratio"}
+\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\pandocbounded{\includegraphics[keepaspectratio]{diagnostic_meta_analysis_files/figure-pdf/unnamed-chunk-15-1.pdf}}
+
+\subsubsection{Egger's test for funnel
+asymmetry}\label{eggers-test-for-funnel-asymmetry}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Egger\textquotesingle{}s test: regress standard normal deviate on precision}
+\CommentTok{\# A significant intercept (p \textless{} 0.10) suggests asymmetry}
+\NormalTok{egger }\OtherTok{\textless{}{-}} \FunctionTok{metabias}\NormalTok{(meta\_dor, }\AttributeTok{method.bias =} \StringTok{"linreg"}\NormalTok{,}
+                  \AttributeTok{k.min =} \DecValTok{10}\NormalTok{)  }\CommentTok{\# minimum studies to test}
+\FunctionTok{print}\NormalTok{(egger)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+Review:     Diagnostic Odds Ratio
+
+Linear regression test of funnel plot asymmetry
+
+Test result: t = 5.10, df = 51, p-value < 0.0001
+Bias estimate: 3.3181 (SE = 0.6510)
+
+Details:
+- multiplicative residual heterogeneity variance (tau^2 = 5.3813)
+- predictor: standard error
+- weight:    inverse variance
+- reference: Egger et al. (1997), BMJ
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{cat}\NormalTok{(}\StringTok{"}\SpecialCharTok{\textbackslash{}n}\StringTok{Egger\textquotesingle{}s test p{-}value:"}\NormalTok{, }\FunctionTok{round}\NormalTok{(egger}\SpecialCharTok{$}\NormalTok{pval, }\DecValTok{4}\NormalTok{))}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+
+Egger's test p-value: 0
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\ControlFlowTok{if}\NormalTok{ (egger}\SpecialCharTok{$}\NormalTok{pval }\SpecialCharTok{\textless{}} \FloatTok{0.10}\NormalTok{) \{}
+  \FunctionTok{cat}\NormalTok{(}\StringTok{" → Evidence of asymmetry (possible publication bias)"}\NormalTok{)}
+\NormalTok{\} }\ControlFlowTok{else}\NormalTok{ \{}
+  \FunctionTok{cat}\NormalTok{(}\StringTok{" → No strong evidence of asymmetry"}\NormalTok{)}
+\NormalTok{\}}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+ → Evidence of asymmetry (possible publication bias)
+\end{verbatim}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{Summary table}\label{summary-table}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{pooled }\SpecialCharTok{|\textgreater{}}
+\NormalTok{  knitr}\SpecialCharTok{::}\FunctionTok{kable}\NormalTok{(}\AttributeTok{caption =} \StringTok{"Final pooled estimates"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{longtable}[]{@{}lrrr@{}}
+\caption{Final pooled estimates}\tabularnewline
+\toprule\noalign{}
+Measure & Estimate & CI\_lower & CI\_upper \\
+\midrule\noalign{}
+\endfirsthead
+\toprule\noalign{}
+Measure & Estimate & CI\_lower & CI\_upper \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+Sensitivity & 84.3 & 78.9 & 88.60 \\
+Specificity & 91.1 & 88.9 & 93.00 \\
+DOR & 55.4 & 29.8 & 102.98 \\
+\end{longtable}
+
+Key takeaways:
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{Sensitivity (pooled):} 84.3\% (95\% CI: 78.9\% -- 88.6\%)
+\item
+  \textbf{Specificity (pooled):} 91.1\% (95\% CI: 88.9\% -- 93\%)
+\item
+  \textbf{DOR (pooled):} 55.4 (95\% CI: 29.8 -- 102.98)
+\item
+  Heterogeneity: sensitivity I² = 0.2\%, specificity I² = 0\%
+\item
+  Egger's test: p = 0
+\end{itemize}
+
+
+
+
+\end{document}

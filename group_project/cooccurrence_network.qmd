@@ -1,0 +1,266 @@
+---
+title: "Bibliometric Co-occurrence Network — Sarcoptes scabiei Diagnostics"
+subtitle: "Built from diagnostic accuracy study data"
+format:
+  html:
+    toc: true
+    code-fold: true
+    embed-resources: true
+execute:
+  message: false
+  warning: false
+keep-tex: true
+---
+
+## Overview
+
+This network visualises co-occurrence relationships in the diagnostic
+accuracy literature on scabies (*Sarcoptes scabiei*). Each edge represents a
+study that links S. scabiei to a host, a diagnostic method, a sample type,
+or an antigen type. The thicker the edge, the more studies support that link.
+
+```{r setup}
+library(tidyverse)
+library(janitor)
+
+raw <- read_csv("../data/Diagnostic_Accuracy_Table.csv", show_col_types = FALSE)
+
+# Clean data: remove non-ASCII, filter valid rows
+d <- raw |>
+  clean_names() |>
+  filter(!is.na(tp)) |>
+  mutate(across(where(is.character), ~ iconv(., from = "latin1", to = "ASCII//TRANSLIT"))) |>
+  mutate(across(where(is.character), ~ gsub("[^ -~]", "", .)))
+
+# --- Categorise variables for the network ---
+
+d <- d |> mutate(
+  host_group = case_when(
+    tolower(study_on) == "human" ~ "Humans",
+    TRUE ~ "Animals"
+  ),
+  method_group = case_when(
+    method %in% c("qPCR", "Qpcr", "nqPCR", "nPCR", "cPCR") ~ "qPCR / cPCR",
+    method == "LAMP" ~ "LAMP",
+    method == "nRT-qPCR" ~ "RT-qPCR",
+    grepl("ELISA|DELFIA", method, ignore.case = TRUE) ~ "ELISA"
+  ),
+  sample_group = case_when(
+    tolower(sample_type) == "serum" ~ "Serum",
+    grepl("scrap", tolower(sample_type)) ~ "Skin scraping",
+    grepl("swab", tolower(sample_type)) ~ "Swab",
+    TRUE ~ sample_type
+  ),
+  antigen_group = case_when(
+    grepl("wma", tolower(antigen_type)) ~ "Whole antigen",
+    grepl("recombinant", tolower(antigen_type)) ~ "Recombinant",
+    tolower(antigen_type) %in% c("mtdna", "nuclear genes", "microsatellite marker") ~ "DNA target"
+  )
+)
+
+# --- Build co-occurrence edge weights ---
+
+# Edge: Sarcoptes ↔ host
+host_edges <- d |> count(host_group, name = "weight") |> mutate(to = host_group, from = "Sarcoptes scabiei")
+# Edge: Sarcoptes ↔ method
+method_edges <- d |> filter(!is.na(method_group)) |> count(method_group, name = "weight") |> mutate(to = method_group, from = "Sarcoptes scabiei")
+# Edge: Sarcoptes ↔ sample type
+sample_edges <- d |> count(sample_group, name = "weight") |> mutate(to = sample_group, from = "Sarcoptes scabiei")
+# Edge: Sarcoptes ↔ antigen type
+antigen_edges <- d |> filter(!is.na(antigen_group)) |> count(antigen_group, name = "weight") |> mutate(to = antigen_group, from = "Sarcoptes scabiei")
+
+# Edge: Serum ↔ ELISA (all 40 ELISA studies used serum, but let's count)
+serum_elisa <- d |> filter(method_group == "ELISA", sample_group == "Serum") |> nrow()
+
+all_edges <- bind_rows(host_edges, method_edges, sample_edges, antigen_edges)
+all_edges <- all_edges |> filter(!is.na(to))
+```
+
+---
+
+## Co-occurrence network
+
+```{r}
+#| fig-height: 5.5
+#| fig-width: 7
+
+# ---- Layout: assign (x, y) positions for each node ----
+
+# Outer ring: node groups with their positions
+all_nodes <- c("Sarcoptes scabiei",
+  "Humans", "Animals",
+  "ELISA", "qPCR / cPCR", "LAMP", "RT-qPCR",
+  "Serum", "Skin scraping", "Swab", "meat-juice",
+  "Whole antigen", "Recombinant", "DNA target")
+
+# Positions — compact, hub at centre
+node_pos <- list(
+  "Sarcoptes scabiei" = c(0, 0),
+  "Humans" = c(-1.4, -0.4),
+  "Animals" = c(-1.4, -1.3),
+  "ELISA" = c(0.6, 1.7),
+  "qPCR / cPCR" = c(-0.6, 1.4),
+  "LAMP" = c(-1.1, 0.7),
+  "RT-qPCR" = c(0.0, 0.8),
+  "Serum" = c(1.7, 1.0),
+  "Skin scraping" = c(1.5, 0.0),
+  "Swab" = c(1.7, -0.7),
+  "meat-juice" = c(1.5, -1.3),
+  "Whole antigen" = c(-0.3, -1.3),
+  "Recombinant" = c(0.4, -1.0),
+  "DNA target" = c(1.0, -1.4)
+)
+
+# Colours for groups
+group_colors <- c(
+  "Sarcoptes scabiei" = "#E67E22",
+  "Humans" = "#1ABC9C",
+  "Animals" = "#8B4513",
+  "ELISA" = "#2ECC71",
+  "qPCR / cPCR" = "#3498DB",
+  "LAMP" = "#2980B9",
+  "RT-qPCR" = "#5DADE2",
+  "Serum" = "#27AE60",
+  "Skin scraping" = "#C0392B",
+  "Swab" = "#E74C3C",
+  "meat-juice" = "#A93226",
+  "Whole antigen" = "#D4AC0D",
+  "Recombinant" = "#F39C12",
+  "DNA target" = "#8E44AD"
+)
+
+# Labels for groups (display names)
+display_name <- c(
+  "Sarcoptes scabiei" = "Sarcoptes scabiei",
+  "Humans" = "Humans",
+  "Animals" = "Animals",
+  "ELISA" = "ELISA",
+  "qPCR / cPCR" = "qPCR/cPCR",
+  "LAMP" = "LAMP",
+  "RT-qPCR" = "RT-qPCR",
+  "Serum" = "Serum",
+  "Skin scraping" = "Skin scraping",
+  "Swab" = "Swab",
+  "meat-juice" = "Meat juice",
+  "Whole antigen" = "Whole antigen",
+  "Recombinant" = "Recombinant",
+  "DNA target" = "DNA target"
+)
+
+# ---- Plot ----
+
+# Set up blank canvas
+par(mar = c(0, 0, 0, 0), bg = "#FAFAFA")
+plot(NA, xlim = c(-2.5, 2.5), ylim = c(-2.0, 2.3),
+     xlab = "", ylab = "", xaxt = "n", yaxt = "n", bty = "n")
+
+# Title
+text(0, 2.1, "Bibliometric Co-occurrence Network", cex = 0.9, font = 2, xpd = TRUE)
+text(0, 1.9, "Sarcoptes scabiei Diagnostics", cex = 0.65, font = 3, col = "#666666", xpd = TRUE)
+
+# Draw edges: Sarcoptes ↔ each other node
+# Edge width proportional to sqrt(weight) for visual clarity
+for (i in seq_len(nrow(all_edges))) {
+  e <- all_edges[i, ]
+  x0 <- node_pos[[e$from]][1]
+  y0 <- node_pos[[e$from]][2]
+  x1 <- node_pos[[e$to]][1]
+  y1 <- node_pos[[e$to]][2]
+
+  if (!is.null(x0) && !is.null(x1)) {
+    w <- sqrt(e$weight) * 0.6
+    segments(x0, y0, x1, y1,
+             col = adjustcolor(group_colors[e$to], alpha.f = 0.5),
+             lwd = w)
+  }
+}
+
+# Special edge: Serum → ELISA (moderator relationship)
+x0 <- node_pos[["Serum"]][1]
+y0 <- node_pos[["Serum"]][2]
+x1 <- node_pos[["ELISA"]][1]
+y1 <- node_pos[["ELISA"]][2]
+segments(x0, y0, x1, y1,
+         col = adjustcolor("#27AE60", alpha.f = 0.5), lwd = sqrt(serum_elisa) * 0.8, lty = 2)
+
+# Draw nodes — scaled down
+for (node in all_nodes) {
+  pos <- node_pos[[node]]
+  if (!is.null(pos)) {
+    col <- group_colors[node]
+    # Base circle size: hub bigger
+    r <- ifelse(node == "Sarcoptes scabiei", 0.45, 0.28)
+    # Outer glow
+    symbols(pos[1], pos[2], circles = r * 1.3,
+            inches = FALSE, add = TRUE,
+            bg = adjustcolor(col, alpha.f = 0.25),
+            fg = NA)
+    # Main node
+    symbols(pos[1], pos[2], circles = r,
+            inches = FALSE, add = TRUE,
+            bg = col,
+            fg = "white", lwd = 1.5)
+    # Label
+    lbl <- display_name[node]
+    cex_lbl <- ifelse(node == "Sarcoptes scabiei", 0.55, 0.45)
+    font_lbl <- ifelse(node == "Sarcoptes scabiei", 2, 1)
+    text(pos[1], pos[2] - r - 0.08,
+         lbl, cex = cex_lbl, font = font_lbl,
+         col = "#222222", xpd = TRUE)
+  }
+}
+
+# Legend — smaller
+legend("topright",
+  legend = c(
+    "Sarcoptes scabiei (hub)",
+    "Host: Humans", "Host: Animals",
+    "Molecular diagnostics", "Immunological diagnostics",
+    "Serum (moderator)", "Clinical / morphological"
+  ),
+  fill = c("#E67E22", "#1ABC9C", "#8B4513",
+           "#3498DB", "#2ECC71",
+           "#27AE60", "#C0392B"),
+  cex = 0.5, bty = "n", title = "", title.adj = 0,
+  xpd = TRUE
+)
+
+# Note
+mtext("Edge thickness = number of studies", side = 1, line = -1,
+      cex = 0.5, col = "#888888", font = 3, adj = 1)
+```
+
+---
+
+## Edge weights table
+
+```{r}
+all_edges |>
+  select(from, to, weight) |>
+  arrange(desc(weight)) |>
+  knitr::kable(caption = "Co-occurrence edge weights (number of studies)")
+```
+
+```{r}
+cat("ELISA studies using Serum:", serum_elisa, "out of",
+    sum(d$method_group == "ELISA", na.rm = TRUE), "total ELISA studies")
+```
+
+---
+
+## Interpretation
+
+- **Sarcoptes scabiei** (orange, centre) connects to all other nodes.
+- **Hosts:** 16 studies on humans (teal), 37 on animals (brown — pigs,
+  rabbits, dogs, foxes, sheep, chamois, bears).
+- **Molecular diagnostics** (blues): qPCR/cPCR (8 studies), LAMP (1),
+  RT-qPCR (2).
+- **Immunological diagnostics** (green): ELISA dominates with 42 studies.
+  Nearly all ELISA studies used **serum** (dashed green edge) — serum acts as
+  a *moderator* variable between the diagnostic method and the pathogen.
+- **Clinical/morphological** (reds): Skin scrapings and swabs are the sample
+  collection methods used across both diagnostic approaches.
+- **Antigen types** (golds/purple): Whole antigen (16), recombinant (23),
+  DNA target (11).
+- Edge thickness reflects the number of linking studies — more evidence
+  behind that connection.

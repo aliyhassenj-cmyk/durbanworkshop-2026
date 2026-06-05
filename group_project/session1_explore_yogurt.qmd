@@ -1,0 +1,306 @@
+---
+title: "Session 1 — Exploring the Yogurt Dataset (Group A)"
+format:
+  html:
+    toc: true
+    code-fold: true
+    embed-resources: true
+execute:
+  message: false
+  warning: false
+---
+
+## Overview
+
+This document loads and explores all four CSV files in the **yogurt study**
+dataset (`data/group_a_yogurt/`). For each file we'll show:
+
+-   What **one row** represents (the unit of observation)
+-   What **every column** means
+-   A quick glance at the data
+
+```{r setup}
+library(tidyverse)
+```
+
+---
+
+## 00 — Sample IDs (`00_sample_ids_yogurt.csv`)
+
+```{r}
+sample_ids <- read_csv("../data/group_a_yogurt/00_sample_ids_yogurt.csv")
+glimpse(sample_ids)
+```
+
+**What one row represents:**  
+A single biological sample taken from one participant at one time point.
+
+**Column guide:**
+
+| Column       | Type        | Meaning |
+|--------------|-------------|---------|
+| `pid`        | identifier  | Participant ID. Links to `01_participant_metadata_yogurt.csv`. |
+| `time_point` | categorical | When the sample was taken — `baseline` (before antibiotics) or `after_antibiotic` (after a course of antibiotics). |
+| `arm`        | categorical | Study arm — `yogurt` (ate yogurt during antibiotics) or `unchanged_diet` (no yogurt, normal diet). |
+| `sample_id`  | identifier  | Unique sample code (e.g. `UNCH001` or `YOG002`). Links to qPCR and luminex tables. |
+
+```{r}
+sample_ids |>
+  count(arm, time_point) |>
+  knitr::kable(col.names = c("Arm", "Time Point", "n"))
+```
+
+---
+
+## 01 — Participant Metadata (`01_participant_metadata_yogurt.csv`)
+
+```{r}
+metadata <- read_csv("../data/group_a_yogurt/01_participant_metadata_yogurt.csv")
+glimpse(metadata)
+```
+
+**What one row represents:**  
+One study participant (51 participants total).
+
+**Column guide:**
+
+| Column              | Type        | Meaning |
+|---------------------|-------------|---------|
+| `pid`               | identifier  | Participant ID. Links to `00_sample_ids_yogurt.csv`. |
+| `arm`               | categorical | Study arm — `yogurt` or `unchanged_diet`. |
+| `days_since_last_sex` | numeric   | Days since the participant last had sex (range 1–48). |
+| `birth_control`     | categorical | Birth control method — `Depoprovera` (injectable contraceptive) or `no hormonal birth control`. |
+| `age`               | numeric     | Age in years (range 24–37). |
+| `education`         | categorical | Highest education level — `less than grade 9`, `grade 10-12, not matriculated`, `grade 10-12, matriculated`, or `post-secondary`. |
+| `sex`               | categorical | All participants are `female`. |
+
+```{r}
+metadata |>
+  count(arm, birth_control) |>
+  knitr::kable(col.names = c("Arm", "Birth Control", "n"))
+
+metadata |>
+  summarise(
+    n = n(),
+    mean_age = mean(age),
+    min_age = min(age),
+    max_age = max(age)
+  )
+```
+
+---
+
+## 02 — qPCR Results (`02_qpcr_results_yogurt.csv`)
+
+```{r}
+qpcr <- read_csv("../data/group_a_yogurt/02_qpcr_results_yogurt.csv")
+glimpse(qpcr)
+```
+
+**What one row represents:**  
+Quantitative PCR (qPCR) measurements of bacterial DNA from one vaginal swab
+sample (102 samples total — one row per sample).
+
+**Column guide:**
+
+| Column          | Type    | Meaning |
+|-----------------|---------|---------|
+| `sample_id`     | identifier | Links to `00_sample_ids_yogurt.csv`. |
+| `qpcr_bacteria` | numeric | Total bacterial load (16S rRNA gene copies). |
+| `qpcr_crispatus`| numeric | Amount of *Lactobacillus crispatus* DNA — a "good" bacterium that helps protect against infections. |
+| `qpcr_iners`    | numeric | Amount of *Lactobacillus iners* DNA — another *Lactobacillus* species, but less protective than *L. crispatus*. |
+
+```{r}
+# Quick look at the range of bacterial loads
+qpcr |>
+  summarise(
+    min_bacteria = min(qpcr_bacteria),
+    median_bacteria = median(qpcr_bacteria),
+    max_bacteria = max(qpcr_bacteria),
+    pct_detectable_crispatus = mean(qpcr_crispatus > 0) * 100,
+    pct_detectable_iners = mean(qpcr_iners > 0) * 100
+  ) |>
+  knitr::kable(digits = 1)
+```
+
+---
+
+## 03 — Luminex Cytokine Results (`03_luminex_results_yogurt.csv`)
+
+```{r}
+luminex <- read_csv("../data/group_a_yogurt/03_luminex_results_yogurt.csv")
+glimpse(luminex)
+
+n_distinct(luminex$sample_id)  # how many unique samples
+```
+
+**What one row represents:**  
+One cytokine measurement from one sample. The data is in "long" format —
+every sample has 10 rows, one per cytokine. (102 samples × 10 cytokines = 1,020 rows.)
+
+**Column guide:**
+
+| Column      | Type        | Meaning |
+|-------------|-------------|---------|
+| `sample_id` | identifier  | Links to `00_sample_ids_yogurt.csv`. |
+| `cytokine`  | categorical | Immune signalling protein measured: IL-1a, IL-1b, IL-6, IL-8, IL-10, TNFa, IFNg (listed as `IFN-Y`), IP-10, MIG, MIP-3a. |
+| `conc`      | numeric     | Concentration of the cytokine (pg/mL). |
+| `limits`    | categorical | Reliability flag — `within limits` (reliable reading) or `out of range` (concentration too low or too high for the assay to measure accurately). |
+
+```{r}
+# Which cytokines are measured
+luminex |>
+  count(cytokine) |>
+  knitr::kable()
+
+# Proportion of out-of-range results per cytokine
+luminex |>
+  mutate(flagged = limits != "within limits") |>
+  group_by(cytokine) |>
+  summarise(pct_flagged = mean(flagged) * 100) |>
+  arrange(desc(pct_flagged)) |>
+  knitr::kable(digits = 1)
+```
+
+---
+
+## How the tables link together
+
+All four tables are linked through **key columns**:
+
+```
+01_participant_metadata  ─── pid ───→ 00_sample_ids
+                                            │
+                                     sample_id
+                                        ├──→ 02_qpcr_results    (1 row per sample)
+                                        └──→ 03_luminex_results (10 rows per sample)
+```
+
+-   `01_participant_metadata` ← `pid` → `00_sample_ids`  
+    (one participant ↔ multiple samples: baseline + after antibiotic)
+
+-   `00_sample_ids` ← `sample_id` → `02_qpcr_results`  
+    (one sample ↔ one qPCR row)
+
+-   `00_sample_ids` ← `sample_id` → `03_luminex_results`  
+    (one sample ↔ 10 cytokine rows)
+
+```{r}
+# Join all three data tables together for a complete picture
+qpcr_with_metadata <- qpcr |>
+  left_join(sample_ids, by = "sample_id") |>
+  left_join(metadata, by = "pid", suffix = c(".sample", "")) |>
+  select(sample_id, pid, time_point, arm, everything())
+
+qpcr_with_metadata |>
+  count(arm, time_point) |>
+  knitr::kable()
+```
+
+### Arm vs. time point — total bacterial load
+
+```{r}
+#| fig-height: 5
+#| fig-width: 8
+
+qpcr_with_metadata <- qpcr_with_metadata |>
+  mutate(time_point = fct_relevel(time_point, "baseline", "after_antibiotic"))
+
+# Total bacteria across time points, by study arm
+qpcr_with_metadata |>
+  ggplot(aes(x = time_point, y = qpcr_bacteria, fill = arm)) +
+  geom_boxplot(alpha = 0.6, outlier.shape = NA) +
+  geom_jitter(aes(color = arm), width = 0.15, alpha = 0.5) +
+  scale_y_log10() +
+  labs(
+    title = "Total bacterial load across time points",
+    subtitle = "By study arm — yogurt vs. unchanged diet",
+    x = "Time point",
+    y = "Total bacteria (log scale)",
+    fill = "Arm",
+    color = "Arm"
+  ) +
+  theme_minimal()
+```
+
+### L. crispatus vs. L. iners — which species dominates?
+
+```{r}
+#| fig-height: 5
+#| fig-width: 8
+
+# Add a small constant so we can plot zeros on a log scale
+qpcr_with_metadata |>
+  ggplot(aes(x = qpcr_crispatus + 1, y = qpcr_iners + 1, color = arm)) +
+  geom_point(alpha = 0.6) +
+  scale_x_log10() +
+  scale_y_log10() +
+  geom_abline(slope = 1, linetype = "dashed", color = "grey50") +
+  labs(
+    title = "L. crispatus vs. L. iners across all samples",
+    subtitle = "Dashed line = equal amounts. Points above it = more iners, below = more crispatus",
+    x = "L. crispatus + 1 (log scale)",
+    y = "L. iners + 1 (log scale)",
+    color = "Arm"
+  ) +
+  theme_minimal()
+```
+
+### Key cytokine — IL-1a across time points
+
+```{r}
+#| fig-height: 5
+#| fig-width: 8
+
+# Join luminex data and pick IL-1a
+luminex_plot <- luminex |>
+  filter(cytokine == "IL-1a") |>
+  left_join(sample_ids, by = "sample_id") |>
+  left_join(metadata, by = "pid", suffix = c(".sample", "")) |>
+  mutate(time_point = fct_relevel(time_point, "baseline", "after_antibiotic"))
+
+luminex_plot |>
+  ggplot(aes(x = time_point, y = conc, fill = arm)) +
+  geom_boxplot(alpha = 0.6, outlier.shape = NA) +
+  geom_jitter(aes(color = arm), width = 0.15, alpha = 0.5) +
+  scale_y_log10() +
+  labs(
+    title = "IL-1a concentration across time points",
+    subtitle = "By study arm — yogurt vs. unchanged diet",
+    x = "Time point",
+    y = "IL-1a (pg/mL, log scale)",
+    fill = "Arm",
+    color = "Arm"
+  ) +
+  theme_minimal()
+```
+
+---
+
+## Quick notes
+
+-   **Study design:** This is a longitudinal study following 51 participants
+    at 2 time points — `baseline` (before antibiotics) and
+    `after_antibiotic`. Half ate yogurt during their antibiotic course, the
+    other half kept their normal diet.
+
+-   **Why yogurt?** The study is testing whether eating yogurt (which
+    contains live bacteria) helps restore a healthy vaginal microbiome after
+    antibiotics disrupt it.
+
+-   **qPCR targets:** The study measures *Lactobacillus crispatus* (a "good"
+    species that produces protective lactic acid) and *Lactobacillus iners*
+    (a related species that's less protective). Many samples have zero
+    *L. crispatus* — it was undetectable.
+
+-   **Birth control:** About half the participants use Depoprovera (an
+    injectable hormonal contraceptive), which can affect the vaginal
+    microbiome.
+
+-   **Missing / flagged data:** Luminex has `out of range` flags. Some
+    cytokines (like IL-10, TNFa) are frequently out of range, meaning they're
+    too low to measure reliably in many samples.
+
+-   **Things we don't know yet:** What specific antibiotic was given? For how
+    long? How much yogurt did the yogurt group eat? Were there any side
+    effects?

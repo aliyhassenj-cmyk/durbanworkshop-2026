@@ -1,0 +1,369 @@
+---
+title: "Complete Data Dictionary — All Datasets"
+subtitle: "Intro to R for Data Science with LLMs | Group B"
+format:
+  html:
+    toc: true
+    code-fold: true
+    embed-resources: true
+execute:
+  echo: true
+  warning: false
+  message: false
+---
+
+```{r setup, include=FALSE}
+library(tidyverse)
+data_dir <- here::here("data")
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+```
+
+This document loads **every CSV file** in the `data/` folder and explains, for
+each one, what a single row represents and what every column means.
+
+---
+
+# 1. Root-level: `Diagnostic_Accuracy_Table.csv`
+
+```{r}
+diag <- read_csv(file.path(data_dir, "Diagnostic_Accuracy_Table.csv"), show_col_types = FALSE)
+glimpse(diag)
+```
+
+**What one row represents:** A single diagnostic test evaluation from one
+published study — each row contains the performance metrics (true positives,
+false positives, etc.) for a particular antigen–method combination tested on
+a specific animal or human population.
+
+| Column | Meaning |
+|--------|---------|
+| `...1` | Row number (not a real column — comes from a leading comma in the CSV) |
+| `Study` | Citation (first author and year) of the publication |
+| `Country` | Country where the study was conducted |
+| `Study on` | Host species tested (e.g. Iberian ibex, rabbit, pig, human, dog) |
+| `Method` | Diagnostic technique used (e.g. Indirect ELISA, qPCR, LAMP) |
+| `Sample-type` | Biological sample tested (serum, ear scraping, skin scraping, etc.) |
+| `Target Antigen` | The specific antigen or gene target detected |
+| `Antigen type` | Type of antigen: WMA (whole mite antigen), Recombinant, etc. |
+| `Diagnostic_type` | Broad category: Immunological or Molecular |
+| `TP` | True Positives — number of infected individuals correctly identified |
+| `FP` | False Positives — uninfected individuals incorrectly called positive |
+| `TN` | True Negatives — uninfected individuals correctly called negative |
+| `FN` | False Negatives — infected individuals missed by the test |
+| `Sensitivity` | TP / (TP + FN) — proportion of infected individuals detected |
+| `Specificity` | TN / (TN + FP) — proportion of uninfected individuals correctly excluded |
+
+---
+
+# 2. Group B — Menstruation study {#group-b}
+
+## 2.1 `00_sample_ids_period.csv`
+
+```{r}
+sample_ids_period <- read_csv(file.path(data_dir, "group_b_menstruation", "00_sample_ids_period.csv"), show_col_types = FALSE)
+glimpse(sample_ids_period)
+```
+
+**What one row represents:** A single biological sample collected from a
+participant in the menstruation study, linked to a specific time point.
+
+| Column | Meaning |
+|--------|---------|
+| `pid` | Participant ID (e.g. `pid_12`) — links to metadata |
+| `time_point` | When the sample was collected: `onset` (start of period), `end_bleeding`, `week_prior` (one week before), or `week_post` (one week after) |
+| `arm` | Birth control group: `birth_control` or `no_birth_control` |
+| `sample_id` | Unique identifier for the biological sample (e.g. `SAMP001`) — used to join with Luminex and flow cytometry data |
+
+## 2.2 `01_participant_metadata_period.csv`
+
+```{r}
+meta_period <- read_csv(file.path(data_dir, "group_b_menstruation", "01_participant_metadata_period.csv"), show_col_types = FALSE)
+glimpse(meta_period)
+```
+
+**What one row represents:** One participant enrolled in the menstruation study.
+
+| Column | Meaning |
+|--------|---------|
+| `pid` | Participant ID |
+| `arm` | Birth control group |
+| `age` | Age in years |
+| `pcos_status` | PCOS status: `pcos` or `no disease` |
+| `period_product` | Menstrual product used: `tampon`, `pad`, or `menstrual_cup` |
+| `sex` | Self-reported sex (all `female`) |
+
+## 2.3 `02_luminex_period.csv`
+
+```{r}
+luminex_period <- read_csv(file.path(data_dir, "group_b_menstruation", "02_luminex_period.csv"), show_col_types = FALSE)
+glimpse(luminex_period)
+```
+
+**What one row represents:** The concentration of a single cytokine or
+chemokine measured in one sample by the Luminex multiplex assay.
+
+| Column | Meaning |
+|--------|---------|
+| `sample_id` | Links to the sample ID in `00_sample_ids_period.csv` |
+| `cytokine` | Name of the analyte measured (IL-1a, IL-1b, IL-6, TNFa, MIG, IFNg, IP-10, MIP-3a) |
+| `conc` | Concentration of the analyte (units depend on the assay — typically pg/mL) |
+| `limits` | Censoring status: `not_censored` (reliable measurement), `below_detection_limit` (too low to quantify), `above_detect_limit` (too high) |
+
+## 2.4 `03_flow_cytometry_period.csv`
+
+```{r}
+flow_period <- read_csv(file.path(data_dir, "group_b_menstruation", "03_flow_cytometry_period.csv"), show_col_types = FALSE)
+glimpse(flow_period)
+```
+
+**What one row represents:** Immune cell counts from a single sample,
+measured by flow cytometry.
+
+| Column | Meaning |
+|--------|---------|
+| `sample_id` | Links to the sample ID |
+| `live_cd19_negative` | Count of live cells that are CD19-negative (not B cells) |
+| `cd45_negative` | Count of CD45-negative cells (not leukocytes) |
+| `cd45_positive` | Count of CD45-positive cells (leukocytes — white blood cells) |
+| `neutrophils` | Count of neutrophil granulocytes (a type of innate immune cell) |
+| `non_neutrophils` | CD45-positive cells that are not neutrophils |
+| `cd3_negative` | CD3-negative cells (not T-cells) |
+| `cd3_positive` | CD3-positive cells (T-cells) |
+| `cd4_t_cells` | CD4+ T helper cells (subset of T-cells) |
+| `cd8_t_cells` | CD8+ cytotoxic T cells (subset of T-cells) |
+
+---
+
+# 3. Group A — Yogurt study {#group-a}
+
+## 3.1 `00_sample_ids_yogurt.csv`
+
+```{r}
+sample_ids_yogurt <- read_csv(file.path(data_dir, "group_a_yogurt", "00_sample_ids_yogurt.csv"), show_col_types = FALSE)
+glimpse(sample_ids_yogurt)
+```
+
+**What one row represents:** A single biological sample from the yogurt
+study, linked to a participant and time point.
+
+| Column | Meaning |
+|--------|---------|
+| `pid` | Participant ID |
+| `time_point` | `baseline` (before intervention) or `after_antibiotic` |
+| `arm` | Diet group: `yogurt` (received yogurt) or `unchanged_diet` (control) |
+| `sample_id` | Unique sample ID (e.g. `YOG002` for yogurt arm, `UNCH001` for unchanged diet) |
+
+## 3.2 `01_participant_metadata_yogurt.csv`
+
+```{r}
+meta_yogurt <- read_csv(file.path(data_dir, "group_a_yogurt", "01_participant_metadata_yogurt.csv"), show_col_types = FALSE)
+glimpse(meta_yogurt)
+```
+
+**What one row represents:** One participant enrolled in the yogurt study.
+
+| Column | Meaning |
+|--------|---------|
+| `pid` | Participant ID |
+| `arm` | Diet group |
+| `days_since_last_sex` | Days since last sexual intercourse |
+| `birth_control` | Birth control use: `Depoprovera` (injectable) or `no hormonal birth control` |
+| `age` | Age in years |
+| `education` | Education level (e.g. `less than grade 9`, `grade 10-12, matriculated`, `post-secondary`) |
+| `sex` | Self-reported sex (all `female`) |
+
+## 3.3 `02_qpcr_results_yogurt.csv`
+
+```{r}
+qpcr_yogurt <- read_csv(file.path(data_dir, "group_a_yogurt", "02_qpcr_results_yogurt.csv"), show_col_types = FALSE)
+glimpse(qpcr_yogurt)
+```
+
+**What one row represents:** qPCR quantification of three bacterial targets
+in a single vaginal sample.
+
+| Column | Meaning |
+|--------|---------|
+| `sample_id` | Links to the sample ID |
+| `qpcr_bacteria` | Total bacterial load (16S rRNA gene copies) |
+| `qpcr_crispatus` | Copy number of *Lactobacillus crispatus* (a beneficial species) |
+| `qpcr_iners` | Copy number of *Lactobacillus iners* (a species associated with vaginal health shifts) |
+
+All values are in gene copy numbers per reaction or per µL of sample.
+
+## 3.4 `03_luminex_results_yogurt.csv`
+
+```{r}
+luminex_yogurt <- read_csv(file.path(data_dir, "group_a_yogurt", "03_luminex_results_yogurt.csv"), show_col_types = FALSE)
+glimpse(luminex_yogurt)
+```
+
+**What one row represents:** The concentration of a single cytokine measured
+in one sample.
+
+| Column | Meaning |
+|--------|---------|
+| `sample_id` | Links to the sample ID |
+| `cytokine` | Analyte name (IL-1a, IL-10, IL-1b, IL-8, IL-6, TNFa, IP-10, MIG, IFN-Y, MIP-3a) |
+| `conc` | Concentration (pg/mL approximately) |
+| `limits` | Quality flag: `within limits` (reliable) or `out of range` (below/above quantifiable range) |
+
+---
+
+# 4. Instructional dataset (UKZN Workshop 2023) {#instructional}
+
+## 4.1 `00_sample_ids_UKZN_workshop_2023.csv`
+
+```{r}
+sample_ids_ukzn <- read_csv(file.path(data_dir, "instructional_dataset", "00_sample_ids_UKZN_workshop_2023.csv"), show_col_types = FALSE)
+glimpse(sample_ids_ukzn)
+```
+
+**What one row represents:** One sample from the instructional workshop
+dataset, linking a participant to a time point and treatment group.
+
+| Column | Meaning |
+|--------|---------|
+| `pid` | Participant ID |
+| `time_point` | `baseline`, `week_1`, or `week_7` |
+| `arm` | Treatment group: `treatment` or `placebo` |
+| `sample_id` | Unique sample ID |
+
+## 4.2 `01_participant_metadata_UKZN_workshop_2023.csv`
+
+```{r}
+meta_ukzn <- read_csv(file.path(data_dir, "instructional_dataset", "01_participant_metadata_UKZN_workshop_2023.csv"), show_col_types = FALSE)
+glimpse(meta_ukzn)
+```
+
+**What one row represents:** One participant in the workshop study.
+
+| Column | Meaning |
+|--------|---------|
+| `pid` | Participant ID |
+| `arm` | Treatment group |
+| `smoker` | `smoker` or `non-smoker` |
+| `age` | Age in years |
+| `education` | Education level |
+| `sex` | Self-reported sex (all `F`) |
+
+## 4.3 `02_visit_clinical_measurements_UKZN_workshop_2023.csv`
+
+```{r}
+clinical_ukzn <- read_csv(file.path(data_dir, "instructional_dataset", "02_visit_clinical_measurements_UKZN_workshop_2023.csv"), show_col_types = FALSE)
+glimpse(clinical_ukzn)
+```
+
+**What one row represents:** Clinical measurements at one visit for one
+participant.
+
+| Column | Meaning |
+|--------|---------|
+| `pid` | Participant ID |
+| `time_point` | Visit time point |
+| `arm` | Treatment group |
+| `nugent_score` | Nugent score (0–10) — a Gram-stain based measure of vaginal microbiota; 0–3 normal, 4–6 intermediate, 7–10 bacterial vaginosis |
+| `crp_blood` | C-reactive protein in blood (mg/L) — a marker of inflammation |
+| `ph` | Vaginal pH |
+
+## 4.4 `03_elisa_cytokines_UKZN_workshop_2023.csv`
+
+```{r}
+elisa_ukzn <- read_csv(file.path(data_dir, "instructional_dataset", "03_elisa_cytokines_UKZN_workshop_2023.csv"), show_col_types = FALSE)
+glimpse(elisa_ukzn)
+```
+
+**What one row represents:** Concentration of one cytokine from one sample,
+measured by ELISA.
+
+| Column | Meaning |
+|--------|---------|
+| `sample_id` | Links to the sample ID |
+| `cytokine` | Analyte name (same panel: IL-1a, IL-10, IL-1b, IL-8, IL-6, TNFa, IP-10, MIG, IFN-Y, MIP-3a) |
+| `conc` | Concentration (pg/mL) |
+| `limits` | `within limits` or `out of range` |
+
+## 4.5 `04_flow_cytometry_UKZN_workshop_2023.csv`
+
+```{r}
+flow_ukzn <- read_csv(file.path(data_dir, "instructional_dataset", "04_flow_cytometry_UKZN_workshop_2023.csv"), show_col_types = FALSE)
+glimpse(flow_ukzn)
+```
+
+**What one row represents:** Immune cell counts from one sample, measured by
+flow cytometry.
+
+The columns are the **same** as the Group B flow cytometry data (section 2.4):
+
+| Column | Meaning |
+|--------|---------|
+| `sample_id` | Links to the sample ID |
+| `live_cd19_negative` | Live cells that are CD19⁻ (not B cells) |
+| `cd45_negative` | CD45⁻ cells (not leukocytes) |
+| `cd45_positive` | CD45⁺ cells (leukocytes) |
+| `neutrophils` | Neutrophil count |
+| `non_neutrophils` | CD45⁺ cells that are not neutrophils |
+| `cd3_negative` | CD3⁻ cells (not T-cells) |
+| `cd3_positive` | CD3⁺ cells (T-cells) |
+| `cd4_t_cells` | CD4⁺ T helper cells |
+| `cd8_t_cells` | CD8⁺ cytotoxic T cells |
+
+---
+
+# 5. Modeling dataset — `01-sorghum_timecourse.csv` {#modeling}
+
+```{r}
+sorghum <- read_csv(file.path(data_dir, "modeling", "01-sorghum_timecourse.csv"), show_col_types = FALSE)
+glimpse(sorghum)
+```
+
+**What one row represents:** Gene expression measurement (read count) for
+one gene in one sorghum leaf sample at one time point, from a field
+time-course experiment.
+
+The first 9 columns are expression values for specific sorghum genes
+(Sobic.XXX — these are gene IDs from the *Sorghum bicolor* genome).
+
+The remaining columns are experimental metadata:
+
+| Column | Meaning |
+|--------|---------|
+| `Sobic.001G062300.v3.1` through `Sobic.003G421700.v3.1` | Expression values (read counts or normalized counts) for individual sorghum genes |
+| `Barcode` | DNA barcode/index used to identify this sample in sequencing |
+| `libraryName` | Library/plate name for the sequencing run |
+| `Block` | Field block number |
+| `Week` | Week of sampling (2–14) |
+| `Replicate` | Biological replicate number (1, 2, or 3) |
+| `Genotype` | Sorghum variety: `RT430` or `BT642` |
+| `Condition` | Treatment condition: `Preflowering`, `Postflowering`, or `Control` |
+| `Sample.type` | Tissue type (all `Leaves`) |
+| `Day` | Day of experiment (e.g. `Day21`, `Day28`, etc.) |
+| `Row` | Field row location |
+| `isFloweringWeek` | `TRUE` if plant was flowering at this time point, `FALSE` otherwise |
+| `Date.Harvested` | Date the sample was harvested |
+| `Collection.Time` | Time of day the sample was collected |
+| `No.plants.pooled` | Number of plants pooled into this sample |
+| `FloweringJulianDate` | Julian date when flowering occurred |
+| `FloweringDate` | Calendar date when flowering occurred |
+| `FloweringWeek` | Week of flowering |
+| `FloweringDay` | Day of flowering |
+| `Unreplicated` | Whether this sample is unreplicated (TRUE) or has proper replication |
+| `CompleteSampleTreatment` | Full sample identifier combining genotype, week, and condition |
+| `Timepoint` | Numeric time point (same as Week) |
+| `Group` | Combined genotype × condition group label |
+
+---
+
+```{r, include=FALSE}
+# Summary: how many files did we load?
+files <- list(
+  diag, sample_ids_period, meta_period, luminex_period, flow_period,
+  sample_ids_yogurt, meta_yogurt, qpcr_yogurt, luminex_yogurt,
+  sample_ids_ukzn, meta_ukzn, clinical_ukzn, elisa_ukzn, flow_ukzn,
+  sorghum
+)
+cat("Total datasets documented:", length(files))
+```
+
+That's it — every CSV file in `data/` has been documented. Use the code
+blocks above as a starting point for your own analyses! 🚀

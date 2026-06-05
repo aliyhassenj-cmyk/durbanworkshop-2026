@@ -31,23 +31,27 @@ For each non-pid column of `table_01` (`arm`, `smoker`, `age`, `education`, `sex
 **1. `arm`**
 
 - How will `tbl_summary(by = arm)` summarise it? *Your answer:*
+it will catagorize based on the two groups (control and intervention) and give counts and percentages for each group.
 - What test will `add_p()` pick? *Your answer:*
-
-**2. `smoker`**
+maybe a chi-squared test, since it's a categorical variable with two groups.
+**2. `smoker`** 
+catagorical variable with two groups (smoker and non-smoker), so it will give counts and percentages for each group.
 
 - *Your answer (summary, test):*
-
+chi-squared test, since it's a categorical variable with two groups.
 **3. `age`**
-
+continuous variable, so it will give mean and standard deviation for each group.
 - *Your answer (summary, test):*
-
+mean (SD), since it's a continuous variable.
 **4. `education`**
-
+catagorical variable with multiple groups (primary, secondary, tertiary), so it will give counts and percentages for each group.
 - *Your answer (summary, test):*
+chi-squared test, since it's a categorical variable with multiple groups.
 
 **5. `sex`**
-
+totalnumber
 - *Your answer (summary, test):*
+it will give counts and percentages for each group, but since it's not by a group, it will just give the overall distribution
 
 ## Part 2 — Build
 
@@ -63,12 +67,13 @@ table_01 |>
 ```{r}
 # step 2: add p-values
 # (modify the previous chunk by adding `|> add_p()`)
+table_01 |> select(-pid, -sex) |> tbl_summary(by = arm) |> add_p()
 ```
 
 ```{r}
 # step 3: override age to mean (SD) + t-test
-# statistic = list(age ~ "{mean} ({sd})")
-# test = list(age ~ "t.test")
+statistic = list(age ~ "{mean} ({sd})")
+test = list(age ~ "t.test")
 ```
 
 ```{r}

@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pan-genome Analysis — Download</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, sans-serif;
+      background: #f5f7fa;
+      color: #2c3e50;
+      padding: 40px 20px;
+      display: flex;
+      justify-content: center;
+    }
+    .container {
+      max-width: 800px;
+      width: 100%;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.1);
+      padding: 40px;
+    }
+    h1 {
+      font-size: 24px;
+      color: #1a1a2e;
+      margin-bottom: 8px;
+    }
+    h1 i { font-style: italic; color: #e74c3c; }
+    .subtitle {
+      color: #666;
+      margin-bottom: 30px;
+      font-size: 14px;
+      border-bottom: 2px solid #eee;
+      padding-bottom: 15px;
+    }
+    .file-list { list-style: none; margin-bottom: 30px; }
+    .file-list li {
+      padding: 12px 16px;
+      margin-bottom: 6px;
+      background: #f8f9fa;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      transition: background 0.2s;
+    }
+    .file-list li:hover { background: #eef2f7; }
+    .file-icon {
+      font-size: 20px;
+      margin-right: 12px;
+      min-width: 28px;
+      text-align: center;
+    }
+    .file-info { flex-grow: 1; }
+    .file-name {
+      font-weight: 600;
+      font-size: 14px;
+      color: #2c3e50;
+    }
+    .file-desc {
+      font-size: 12px;
+      color: #888;
+      margin-top: 2px;
+    }
+    .download-btn {
+      background: #3498db;
+      color: white;
+      text-decoration: none;
+      padding: 6px 14px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 500;
+      transition: background 0.2s;
+    }
+    .download-btn:hover { background: #2980b9; }
+    .package-box {
+      background: #eaf7ee;
+      border: 2px dashed #27ae60;
+      border-radius: 10px;
+      padding: 20px;
+      margin-bottom: 25px;
+      text-align: center;
+    }
+    .package-box h3 {
+      color: #27ae60;
+      margin-bottom: 10px;
+      font-size: 18px;
+    }
+    .package-box p { font-size: 13px; color: #555; margin-bottom: 15px; }
+    .big-btn {
+      display: inline-block;
+      background: #27ae60;
+      color: white;
+      padding: 12px 32px;
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: 700;
+      font-size: 16px;
+      transition: background 0.2s;
+      margin: 0 8px;
+    }
+    .big-btn:hover { background: #219a52; }
+    .big-btn.secondary {
+      background: #3498db;
+    }
+    .big-btn.secondary:hover { background: #2980b9; }
+    .big-btn i { margin-right: 8px; }
+    .footer {
+      margin-top: 30px;
+      padding-top: 20px;
+      border-top: 1px solid #eee;
+      font-size: 12px;
+      color: #aaa;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1><i>Sarcoptes scabiei</i> Pan-genome Metadata Analysis</h1>
+    <p class="subtitle">WGS, Target Sequences &amp; Phylogenetic Overview by Host Species</p>
+
+    <div class="package-box">
+      <h3>📦 Download Everything</h3>
+      <p>Get all files in a single archive (metadata CSV + analysis notebook + PDF report + figures)</p>
+      <a class="big-btn" href="pan-genome_analysis_package.zip">⬇ Download ZIP</a>
+      <a class="big-btn secondary" href="pan-genome_analysis_package.tar.gz">⬇ Download .tar.gz</a>
+    </div>
+
+    <h2 style="font-size:16px; margin-bottom:12px;">📄 Individual Files</h2>
+    <ul class="file-list">
+      <li>
+        <span class="file-icon">📊</span>
+        <span class="file-info">
+          <span class="file-name">pan-genome_analysis.pdf</span>
+          <span class="file-desc">Complete PDF report with 9 figures and 7 tables</span>
+        </span>
+        <a class="download-btn" href="pan-genome_analysis.pdf">View</a>
+      </li>
+      <li>
+        <span class="file-icon">📓</span>
+        <span class="file-info">
+          <span class="file-name">pan-genome_analysis.qmd</span>
+          <span class="file-desc">Quarto notebook — re-render to update the analysis</span>
+        </span>
+        <a class="download-btn" href="pan-genome_analysis.qmd">Download</a>
+      </li>
+      <li>
+        <span class="file-icon">📋</span>
+        <span class="file-info">
+          <span class="file-name">Meta data for Panagenome analysis(AutoRecovered).csv</span>
+          <span class="file-desc">Raw metadata: 84 SRA/ENA sequencing runs with host, isolate, geography, and assay info</span>
+        </span>
+        <a class="download-btn" href="Meta%20data%20for%20Panagenome%20analysis(AutoRecovered).csv">Download</a>
+      </li>
+      <li>
+        <span class="file-icon">📈</span>
+        <span class="file-info">
+          <span class="file-name">fig_analysis_overview.png</span>
+          <span class="file-desc">Bar chart: runs per host species by assay type</span>
+        </span>
+        <a class="download-btn" href="fig_analysis_overview.png">View</a>
+      </li>
+      <li>
+        <span class="file-icon">📈</span>
+        <span class="file-info">
+          <span class="file-name">fig_bases_by_host.png</span>
+          <span class="file-desc">Bar chart: total Gb sequenced per host</span>
+        </span>
+        <a class="download-btn" href="fig_bases_by_host.png">View</a>
+      </li>
+      <li>
+        <span class="file-icon">📈</span>
+        <span class="file-info">
+          <span class="file-name">fig_assay_distribution.png</span>
+          <span class="file-desc">Pie chart: assay type proportions</span>
+        </span>
+        <a class="download-btn" href="fig_assay_distribution.png">View</a>
+      </li>
+    </ul>
+
+    <div class="footer">
+      Generated from the R for Data Science with LLMs Workshop • Durban 2026
+    </div>
+  </div>
+</body>
+</html>

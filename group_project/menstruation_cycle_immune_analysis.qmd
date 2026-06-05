@@ -1,0 +1,440 @@
+---
+title: "Immune cell & cytokine dynamics across the menstrual cycle"
+subtitle: "Effects of hormonal birth control and PCOS status on vaginal immune populations"
+author: "Group B — Menstruation Study"
+format:
+  html:
+    toc: true
+    code-fold: true
+    embed-resources: true
+execute:
+  message: false
+  warning: false
+---
+
+
+
+## Research question
+
+How do immune cell populations and inflammatory cytokines change across the
+menstrual cycle, and are these patterns affected by hormonal birth control
+and/or PCOS status?
+
+## Study design
+
+- **Longitudinal study:** 27 female participants, 4 time points across the
+  menstrual cycle (week_prior → onset → end_bleeding → week_post)
+- **108 vaginal swab samples** total
+- **14** participants use hormonal birth control, **13** do not
+- **~50%** have PCOS (polycystic ovary syndrome)
+- **Two assays:**
+  - Flow cytometry → immune cell counts (CD45+, neutrophils, T cells)
+  - Luminex → 8 inflammatory cytokines (IL-1a, IL-1b, IL-6, TNFa, etc.)
+
+```{r}
+#| include: false
+library(tidyverse)
+library(lme4)
+library(lmerTest)
+library(emmeans)
+library(car)
+library(gt)
+library(ggpubr)
+
+theme_set(theme_minimal(base_size = 11))
+
+# Load data
+sample_ids <- read_csv("../data/group_b_menstruation/00_sample_ids_period.csv")
+metadata   <- read_csv("../data/group_b_menstruation/01_participant_metadata_period.csv")
+luminex    <- read_csv("../data/group_b_menstruation/02_luminex_period.csv")
+flow       <- read_csv("../data/group_b_menstruation/03_flow_cytometry_period.csv")
+
+# Master dataset
+master <- flow |>
+  left_join(sample_ids, by = "sample_id") |>
+  left_join(metadata, by = "pid", suffix = c(".sample", "")) |>
+  mutate(
+    time_point = fct_relevel(time_point,
+      "week_prior", "onset", "end_bleeding", "week_post"),
+    cd4_cd8_ratio = cd4_t_cells / cd8_t_cells
+  )
+
+# Luminex master
+luminex_master <- luminex |>
+  left_join(sample_ids, by = "sample_id") |>
+  left_join(metadata, by = "pid", suffix = c(".sample", "")) |>
+  mutate(time_point = fct_relevel(time_point,
+    "week_prior", "onset", "end_bleeding", "week_post"))
+```
+
+---
+
+## Paper-quality tables
+
+### Table 1 — Immune cell counts across the cycle
+
+```{r}
+#| fig-cap: "Table 1"
+desc_table <- master |>
+  group_by(time_point, arm) |>
+  summarise(
+    n = n(),
+    `CD45+`   = sprintf("%.0f (%.0f)", median(cd45_positive), IQR(cd45_positive)),
+    Neutrophils = sprintf("%.0f (%.0f)", median(neutrophils), IQR(neutrophils)),
+    `CD4+ T`  = sprintf("%.0f (%.0f)", median(cd4_t_cells), IQR(cd4_t_cells)),
+    `CD8+ T`  = sprintf("%.0f (%.0f)", median(cd8_t_cells), IQR(cd8_t_cells)),
+    `CD4/CD8` = sprintf("%.2f (%.2f)", median(cd4_cd8_ratio, na.rm = TRUE),
+                           IQR(cd4_cd8_ratio, na.rm = TRUE)),
+    .groups = "drop"
+  )
+
+desc_table |>
+  gt(groupname_col = "time_point") |>
+  tab_header(
+    title = md("**Table 1.** Immune cell counts across the menstrual cycle"),
+    subtitle = "Median (IQR) by time point and study arm. n = 108 samples from 27 participants."
+  ) |>
+  fmt_markdown(columns = everything()) |>
+  cols_label(
+    arm = "Study arm",
+    n = "n",
+    `CD45+` = "CD45+",
+    `Neutrophils` = "Neutrophils",
+    `CD4+ T` = "CD4+ T cells",
+    `CD8+ T` = "CD8+ T cells",
+    `CD4/CD8` = "CD4/CD8"
+  ) |>
+  tab_spanner(label = "Cell counts (cells / sample)", columns = 3:8) |>
+  tab_source_note(source_note = "Birth control arm: n = 14 participants. No birth control arm: n = 13.") |>
+  tab_options(
+    heading.title.font.size = px(14),
+    column_labels.font.size = px(11),
+    table.font.size = px(10)
+  )
+```
+
+### Table 2 — Cytokine concentrations
+
+```{r}
+#| fig-cap: "Table 2"
+cytokines_keep <- c("IL-1a", "IL-6", "IP-10", "MIP-3a")
+luminex_master |>
+  filter(limits == "not_censored", cytokine %in% cytokines_keep) |>
+  group_by(time_point, arm, cytokine) |>
+  summarise(
+    n = n(),
+    `Median (IQR) pg/mL` = sprintf("%.2f (%.2f)", median(conc, na.rm = TRUE),
+                                     IQR(conc, na.rm = TRUE)),
+    .groups = "drop"
+  ) |>
+  gt(groupname_col = "cytokine") |>
+  tab_header(
+    title = md("**Table 2.** Cytokine concentrations across the menstrual cycle"),
+    subtitle = "Median (IQR) pg/mL; only 'not censored' values shown."
+  ) |>
+  cols_label(
+    time_point = "Time point",
+    arm = "Study arm",
+    n = "n"
+  ) |>
+  tab_source_note(source_note = "IL-1a and IP-10 had the highest detection rates. TNFa and IFNg were frequently below detection.")
+```
+
+---
+
+## Regression models
+
+We fit **linear mixed-effects models** (random intercept per participant) with
+log-transformed outcomes. Type III ANOVA with Satterthwaite denominator df.
+
+### Model 1: CD45+ immune cells ~ time point × arm
+
+```{r}
+m1 <- lmer(log(cd45_positive) ~ time_point * arm + (1 | pid), data = master)
+anova(m1, type = 3) |>
+  as.data.frame() |>
+  rownames_to_column("Term") |>
+  gt() |>
+  tab_header(
+    title = md("**Model 1.** log(CD45+) ~ time_point × arm"),
+    subtitle = "Type III ANOVA (Satterthwaite)"
+  ) |>
+  fmt_number(columns = c("Sum Sq", "Mean Sq"), decimals = 3) |>
+  fmt_number(columns = c("F value"), decimals = 2) |>
+  fmt_number(columns = c("Pr(>F)"), decimals = 4)
+```
+
+**Result:** No significant main effect of time point (F~3,75~ = 1.67, p = 0.18),
+arm (F~1,25~ = 0.71, p = 0.41), or their interaction (F~3,75~ = 0.22, p = 0.88).
+CD45+ counts are relatively stable across the cycle regardless of birth control use.
+
+### Model 2: Neutrophils ~ time point × arm
+
+```{r}
+m2 <- lmer(log(neutrophils) ~ time_point * arm + (1 | pid), data = master)
+anova(m2, type = 3) |>
+  as.data.frame() |>
+  rownames_to_column("Term") |>
+  gt() |>
+  tab_header(
+    title = md("**Model 2.** log(Neutrophils) ~ time_point × arm"),
+    subtitle = "Type III ANOVA (Satterthwaite)"
+  ) |>
+  fmt_number(columns = c("Sum Sq", "Mean Sq"), decimals = 3) |>
+  fmt_number(columns = c("F value"), decimals = 2) |>
+  fmt_number(columns = c("Pr(>F)"), decimals = 4)
+```
+
+**Result:** Same pattern — no significant effects of time point, arm, or their
+interaction on neutrophil counts.
+
+### Model 3: CD45+ ~ time point × PCOS status
+
+```{r}
+m3 <- lmer(log(cd45_positive) ~ time_point * pcos_status + (1 | pid), data = master)
+anova(m3, type = 3) |>
+  as.data.frame() |>
+  rownames_to_column("Term") |>
+  gt() |>
+  tab_header(
+    title = md("**Model 3.** log(CD45+) ~ time_point × PCOS status"),
+    subtitle = "Type III ANOVA (Satterthwaite)"
+  ) |>
+  fmt_number(columns = c("Sum Sq", "Mean Sq"), decimals = 3) |>
+  fmt_number(columns = c("F value"), decimals = 2) |>
+  fmt_number(columns = c("Pr(>F)"), decimals = 4)
+```
+
+**Result:** No significant effects. PCOS status does not independently predict
+CD45+ cell counts in this sample.
+
+### Model 4: IL-1a ~ time point × arm **← the strongest finding**
+
+```{r}
+il1a_data <- luminex_master |>
+  filter(cytokine == "IL-1a", limits == "not_censored")
+
+m4 <- lmer(log(conc) ~ time_point * arm + (1 | pid), data = il1a_data)
+anova(m4, type = 3) |>
+  as.data.frame() |>
+  rownames_to_column("Term") |>
+  gt() |>
+  tab_header(
+    title = md("**Model 4.** log(IL-1a) ~ time_point × arm **"),
+    subtitle = "Type III ANOVA (Satterthwaite)"
+  ) |>
+  fmt_number(columns = c("Sum Sq", "Mean Sq"), decimals = 3) |>
+  fmt_number(columns = c("F value"), decimals = 2) |>
+  fmt_number(columns = c("Pr(>F)"), decimals = 6)
+```
+
+**Result:** This is our strongest model. **IL-1a varies significantly across
+the menstrual cycle** (F~3,73.8~ = 22.75, p < 0.001) and **differs by birth
+control arm** (F~1,24.3~ = 6.96, p = 0.014). The interaction was not significant.
+IL-1a peaks sharply at *onset* (menstruation) and at *end_bleeding*, with
+lower concentrations in the birth control group.
+
+### Model 5: CD4/CD8 ratio ~ time point × arm
+
+```{r}
+m5 <- lmer(log(cd4_cd8_ratio) ~ time_point * arm + (1 | pid), data = master)
+anova(m5, type = 3) |>
+  as.data.frame() |>
+  rownames_to_column("Term") |>
+  gt() |>
+  tab_header(
+    title = md("**Model 5.** log(CD4/CD8 ratio) ~ time_point × arm"),
+    subtitle = "Type III ANOVA (Satterthwaite)"
+  ) |>
+  fmt_number(columns = c("Sum Sq", "Mean Sq"), decimals = 3) |>
+  fmt_number(columns = c("F value"), decimals = 2) |>
+  fmt_number(columns = c("Pr(>F)"), decimals = 6)
+```
+
+**Result:** The CD4/CD8 ratio **changes significantly across cycle time
+points** (F~3,75~ = 9.57, p < 0.001), but no effect of birth control arm or
+their interaction. The ratio shifts across the cycle, suggesting differential
+trafficking of helper vs. cytotoxic T cells during menstruation.
+
+### Model summary table
+
+```{r}
+#| fig-cap: "Table 3. Model summary"
+model_list <- list(
+  "log(CD45+)" = m1,
+  "log(Neutrophils)" = m2,
+  "log(IL-1a)" = m4,
+  "log(CD4/CD8)" = m5
+)
+
+model_rows <- list()
+for (nm in names(model_list)) {
+  aov <- anova(model_list[[nm]], type = 3)
+  for (i in seq_len(nrow(aov))) {
+    term <- rownames(aov)[i]
+    model_rows[[length(model_rows) + 1]] <- tibble(
+      Outcome = nm,
+      Term = term,
+      F = sprintf("%.2f", aov[i, "F value"]),
+      df = paste0(aov[i, "NumDF"], ", ", round(aov[i, "DenDF"], 0)),
+      p = sprintf("%.4f", aov[i, "Pr(>F)"]),
+      Sig = case_when(
+        aov[i, "Pr(>F)"] < 0.001 ~ "***",
+        aov[i, "Pr(>F)"] < 0.01 ~ "**",
+        aov[i, "Pr(>F)"] < 0.05 ~ "*",
+        TRUE ~ "ns"
+      )
+    )
+  }
+}
+
+bind_rows(model_rows) |>
+  gt(groupname_col = "Outcome") |>
+  tab_header(
+    title = md("**Table 3.** Mixed-effects model results"),
+    subtitle = "Type III ANOVA (Satterthwaite). Fixed effects; random intercept per participant."
+  ) |>
+  cols_label(Sig = "") |>
+  tab_source_note(source_note = "*** p < 0.001, ** p < 0.01, * p < 0.05, ns = not significant")
+```
+
+---
+
+## Figures (ggpubr-style comparisons)
+
+### Figure 1 — CD45+ immune cells by birth control arm
+
+```{r}
+#| fig-cap: "CD45+ immune cells across the menstrual cycle, grouped by hormonal birth control use"
+#| fig-height: 5
+#| fig-width: 8
+
+arm_colors <- c("birth_control" = "#E41A1C", "no_birth_control" = "#377EB8")
+
+p1 <- master |>
+  ggplot(aes(x = time_point, y = cd45_positive, fill = arm)) +
+  geom_boxplot(alpha = 0.6, outlier.shape = NA) +
+  geom_jitter(aes(color = arm), width = 0.15, alpha = 0.5, size = 1.2) +
+  scale_fill_manual(values = arm_colors) +
+  scale_color_manual(values = arm_colors) +
+  scale_y_log10(labels = scales::comma) +
+  labs(
+    title = "CD45+ immune cells across the menstrual cycle",
+    subtitle = "By hormonal birth control use",
+    x = "Menstrual cycle time point",
+    y = "CD45+ cells",
+    fill = "Study arm",
+    color = "Study arm",
+    caption = "p-values from t-test at each time point"
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(
+    plot.title = element_text(face = "bold"),
+    legend.position = "top"
+  )
+
+p1 + stat_compare_means(
+  aes(group = arm),
+  label = "p.format",
+  method = "t.test",
+  bracket.size = 0.3,
+  size = 2.8,
+  tip.length = 0.01
+)
+```
+
+### Figure 2 — IL-1a by PCOS status
+
+```{r}
+#| fig-cap: "IL-1a concentration across the menstrual cycle, grouped by PCOS status"
+#| fig-height: 5
+#| fig-width: 8
+
+pcos_colors <- c("no disease" = "#4DAF4A", "pcos" = "#984EA3")
+
+il1a_plot_data <- luminex_master |>
+  filter(cytokine == "IL-1a", limits == "not_censored")
+
+p2 <- il1a_plot_data |>
+  ggplot(aes(x = time_point, y = conc, fill = pcos_status)) +
+  geom_boxplot(alpha = 0.6, outlier.shape = NA) +
+  geom_jitter(aes(color = pcos_status), width = 0.15, alpha = 0.5, size = 1.2) +
+  scale_fill_manual(values = pcos_colors) +
+  scale_color_manual(values = pcos_colors) +
+  scale_y_log10(labels = scales::comma) +
+  labs(
+    title = "IL-1a concentration across the menstrual cycle",
+    subtitle = "By PCOS status — only non-censored values",
+    x = "Menstrual cycle time point",
+    y = "IL-1a (pg/mL)",
+    fill = "PCOS status",
+    color = "PCOS status",
+    caption = "p-values from t-test at each time point"
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(
+    plot.title = element_text(face = "bold"),
+    legend.position = "top"
+  )
+
+p2 + stat_compare_means(
+  aes(group = pcos_status),
+  label = "p.format",
+  method = "t.test",
+  bracket.size = 0.3,
+  size = 2.8,
+  tip.length = 0.01
+)
+```
+
+### Figure 3 — CD4/CD8 ratio (both arm and PCOS)
+
+```{r}
+#| fig-cap: "CD4/CD8 T cell ratio across the menstrual cycle, faceted by PCOS status and coloured by birth control use"
+#| fig-height: 5
+#| fig-width: 10
+
+master |>
+  ggplot(aes(x = time_point, y = cd4_cd8_ratio, fill = arm)) +
+  geom_boxplot(alpha = 0.6, outlier.shape = NA) +
+  geom_jitter(aes(color = arm), width = 0.15, alpha = 0.4, size = 1) +
+  scale_fill_manual(values = arm_colors) +
+  scale_color_manual(values = arm_colors) +
+  geom_hline(yintercept = 1, linetype = "dashed", color = "grey40", linewidth = 0.4) +
+  labs(
+    title = "CD4/CD8 T cell ratio across the menstrual cycle",
+    subtitle = "Faceted by PCOS status; colored by birth control use",
+    x = "Menstrual cycle time point",
+    y = "CD4+ / CD8+ ratio",
+    fill = "Study arm",
+    color = "Study arm"
+  ) +
+  facet_wrap(~ pcos_status) +
+  theme_minimal(base_size = 11) +
+  theme(
+    plot.title = element_text(face = "bold"),
+    legend.position = "top",
+    strip.text = element_text(face = "bold")
+  )
+```
+
+---
+
+## Summary of key findings
+
+| Finding | Evidence |
+|---------|----------|
+| **IL-1a varies dramatically across the cycle** | F~3,73.8~ = 22.75, p < 0.001 — peaks at onset and end_bleeding |
+| **Birth control lowers IL-1a** | F~1,24.3~ = 6.96, p = 0.014 — lower concentrations in BC users |
+| **CD4/CD8 ratio shifts across the cycle** | F~3,75~ = 9.57, p < 0.001 — suggests differential T cell trafficking |
+| **CD45+ cells and neutrophils are stable** | No significant effects of time, arm, or PCOS |
+| **PCOS shows trends but not significant** | Possibly due to small sample size (n = 27) |
+
+## Limitations & next steps
+
+- **Small sample (n = 27)** limits power for detecting interaction effects
+- **Censored cytokine data** — TNFa, IFNg, IL-1b mostly below detection — reduces usable observations
+- **Birth control type not specified** (pill vs. IUD vs. implant may differ)
+- **PCOS diagnosis method** not documented
+- Next: censored regression (tobit) models, inclusion of age/sexual activity
+  as covariates, pathway analysis linking cytokines to cell types
